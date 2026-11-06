@@ -181,40 +181,27 @@ export default function DocumentManagementPage() {
               </div>
               <div>
                 <p className="font-medium text-secondary">Compliance</p>
-                <p className="text-2xl font-bold {compliancePercentage >= 80 ? 'text-primary' : 'text-red-600'}">
+                <p className={`text-2xl font-bold ${compliancePercentage >= 80 ? "text-primary" : "text-red-600"}`}>
                   {compliancePercentage}%
                 </p>
                 <p className="text-zinc-500 text-xs">minimum 80% required</p>
               </div>
             </div>
             
-            <progress
-              className="w-full mt-2 height-2 rounded-md {compliancePercentage >= 80 ? 'bg-primary' : 'bg-red-500'}"
-              value={compliancePercentage}
-              max={100}
-              aria-label="Document compliance progress"
-            />
+            <div className="w-full mt-2 h-2 rounded-full bg-zinc-100 overflow-hidden">
+              <div className="h-full bg-primary" style={{ width: `${compliancePercentage}%` }} />
+            </div>
             
-            {compliancePercentage >= 80 && userType === 'applicant' && (
+            {compliancePercentage >= 80 ? (
               <p className="mt-2 text-primary text-sm">
-                ✅ 80% compliance reached → "Submit DPR" available
+                ✅ 80% compliance reached. Documents are ready for review.
               </p>
-            )}
-{compliancePercentage < 80 && userType === 'applicant' && (
+            ) : (
               <p className="mt-2 text-red-600 text-sm">
                 ❌ Minimum 80% not met. Upload more documents before submitting.
               </p>
             )}
-{userType === 'ca' && compliancePercentage >= 80 && (
-              <p className="mt-2 text-primary text-sm">
-                ✅ 80% compliance reached. documents are ready for review.
-              </p>
-            )}
-{compliancePercentage < 80 && userType === 'ca' && (
-              <p className="mt-2 text-red-600 text-sm">
-                ❌ Minimum 80% not met. Upload more documents.
-              </p>
-            )}</div>
+          </div>
 
           {/* Document Upload Form */}
           <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
@@ -224,7 +211,7 @@ export default function DocumentManagementPage() {
             </p>
             
             {documentCategories.map((category) => (
-              <div key={category.id} className="mb-4 p-3 rounded-md border-2 border-zinc-200 {category.mandatory ? '' : 'border-zinc-300'}">
+              <div key={category.id} className={`mb-4 p-4 rounded-md border-2 ${category.mandatory ? "border-zinc-200" : "border-zinc-300"}`}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
                     <span className={category.mandatory ? 'text-secondary font-medium' : 'text-zinc-400'}>

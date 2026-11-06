@@ -1,34 +1,11 @@
-/* 
+/*
  * Implementation Schedule - DPR Preparation Application
- * Screen 13: Implementation Schedule
- * 18-screen workflow: Login → Dashboard → Client Mgmt → Project Creation → Project Information → Document Submission → Loan Repayment → Cash Flow → Break-Even → Balance Sheet → Implementation Schedule → ... 
- * 
- * Integrates with:
-   - Balance Sheet: Fixed assets, loan outstanding, capital structure
-   - Break-Even Report: Sensitivity analysis results
-   - Document Submission: Compliance verified, documents uploaded
-   - Dashboard: Project selection and navigation
- * 
- * Per SRS Section 12 and Screen 13 Requirements:
-   - Editable table with standard stages
-   - Stage name (dropdown with standard stages)
-   - Description (optional text)
-   - Start week (mandatory, integer, ≥1)
-   - End week (mandatory, integer, >Start week)
-   - Responsible person (optional)
-   - Status (mandatory, dropdown: Not Started/In Progress/Completed/Delayed)
-   - Dependencies (optional, link to other stages)
-   - Standard stages populated from PDF:
-     1. Quotations inspection and customer enquiries (Weeks 1-2)
-     2. Bank appraisal and sanction (Subject to lender processing)
-     3. Promoter contribution and asset purchase (After sanction)
-     4. Insurance commissioning and operator engagement (Within 2 weeks after purchase)
-     5. Commercial operation and billing (After equipment readiness)
+ * Screen 10: project stages with timing, ownership, dependencies and status.
  */
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Stage = {
@@ -42,336 +19,274 @@ type Stage = {
   dependencies: string;
 };
 
+const STATUSES = ["Not Started", "In Progress", "Completed", "Delayed"];
+
+const DEFAULT_STAGES: Stage[] = [
+  {
+    id: 1,
+    name: "Quotations inspection and customer enquiries",
+    description: "Initial customer enquiries and quotation requests",
+    startWeek: 1,
+    endWeek: 2,
+    status: "Not Started",
+    responsible: "",
+    dependencies: "",
+  },
+  {
+    id: 2,
+    name: "Bank appraisal and sanction",
+    description: "Subject to lender processing and approval",
+    startWeek: 3,
+    endWeek: 8,
+    status: "Not Started",
+    responsible: "",
+    dependencies: "1",
+  },
+  {
+    id: 3,
+    name: "Promoter contribution and asset purchase",
+    description: "After sanction, promoter contribution and used asset purchase",
+    startWeek: 9,
+    endWeek: 12,
+    status: "Not Started",
+    responsible: "",
+    dependencies: "2",
+  },
+  {
+    id: 4,
+    name: "Insurance commissioning and operator engagement",
+    description: "Within 2 weeks after purchase: insurance commissioning and operator engagement",
+    startWeek: 13,
+    endWeek: 14,
+    status: "Not Started",
+    responsible: "",
+    dependencies: "3",
+  },
+  {
+    id: 5,
+    name: "Commercial operation and billing",
+    description: "After equipment readiness, start billing customers",
+    startWeek: 15,
+    endWeek: 20,
+    status: "Not Started",
+    responsible: "",
+    dependencies: "4",
+  },
+];
+
+const field = "w-full rounded border border-zinc-300 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20";
+
 export default function ImplementationSchedulePage() {
-  const [userType, setUserType] = useState<'ca' | 'applicant'>('ca');
   const router = useRouter();
-
-  useEffect(() => {
-    const storedType = localStorage.getItem("dpr_user_type");
-    if (storedType) {
-      setUserType(storedType as 'ca' | 'applicant');
-    }
-  }, []);
-
-  // Standard stages from PDF (populated default values)
-  const standardStages: Stage[] = [
-    { id: 1, name: "Quotations inspection and customer enquiries", description: "Initial customer enquiries and quotation requests", startWeek: 1, endWeek: 2, status: "Not Started", responsible: "", dependencies: "" },
-    { id: 2, name: "Bank appraisal and sanction", description: "Subject to lender processing and approval", startWeek: 3, endWeek: 8, status: "Not Started", responsible: "", dependencies: "1" },
-    { id: 3, name: "Promoter contribution and asset purchase", description: "After sanction, promoter contribution and used asset purchase", startWeek: 9, endWeek: 12, status: "Not Started", responsible: "", dependencies: "2" },
-    { id: 4, name: "Insurance commissioning and operator engagement", description: "Within 2 weeks after purchase, insurance commissioning and operator engagement", startWeek: 13, endWeek: 14, status: "Not Started", responsible: "", dependencies: "3" },
-    { id: 5, name: "Commercial operation and billing", description: "After equipment readiness, start billing customers", startWeek: 15, endWeek: 20, status: "Not Started", responsible: "", dependencies: "4" }
-  ];
-
-  // Stage status options
-  const statusOptions = ["Not Started", "In Progress", "Completed", "Delayed"];
-
-  // Handle stage status change
-  const handleStatusChange = (stageId: number, newStatus: string) => {
-    setStages(prev => prev.map(stage => 
-      stage.id === stageId ? { ...stage, status: newStatus } : stage
-    ));
-  };
-
-  // Add new stage
-  const [newStage, setNewStage] = useState<{ name: string; description: string; startWeek: number; endWeek: number; responsible: string; dependencies: string }>({ name: "", description: "", startWeek: 1, endWeek: 2, responsible: "", dependencies: "" });
-  const addStage = () => {
-    const nextId = standardStages.length + 1;
-    setStages(prev => [...prev, { ...newStage, id: nextId, status: "Not Started" }]);
-    setNewStage({ name: "", description: "", startWeek: 1, endWeek: 2, responsible: "", dependencies: "" });
-  };
-
-  // Remove stage
-  const removeStage = (stageId: number) => {
-    setStages(prev => prev.filter(stage => stage.id !== stageId));
-  };
-
-  // Save stages
-  const handleSave = () => {
-    // Implementation schedule saved; persists to localStorage or would integrate with API
-    localStorage.setItem("implementationSchedule", JSON.stringify(stages));
-    // All screens are available
-    if (userType === 'applicant') {
-      router.push("/document-management");
-    } else {
-      router.push("/document-management");
-    }
-  };
-
-  // Load stages from localStorage after mount (not during prerender)
-  const [stages, setStages] = useState<Stage[]>(standardStages);
+  const [stages, setStages] = useState<Stage[]>(DEFAULT_STAGES);
+  const [loaded, setLoaded] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("implementationSchedule");
     if (stored) {
       try {
-        setStages(JSON.parse(stored) as Stage[]);
+        const parsed = JSON.parse(stored) as Stage[];
+        if (Array.isArray(parsed) && parsed.length > 0) setStages(parsed);
       } catch {
-        // Ignore malformed saved data and keep PDF defaults
+        // keep defaults
       }
     }
+    setLoaded(true);
   }, []);
 
   useEffect(() => {
-    // Sync updated stages to localStorage
+    if (!loaded) return;
     localStorage.setItem("implementationSchedule", JSON.stringify(stages));
-  }, [stages]);
+  }, [stages, loaded]);
 
-  const handleBack = () => {
-    router.push('/dashboard');
-  };
+  const patch = (id: number, changes: Partial<Stage>) =>
+    setStages((previous) =>
+      previous.map((stage) => (stage.id === id ? { ...stage, ...changes } : stage))
+    );
 
-  const completedCount = stages.filter((stage) => stage.status === "Completed").length;
-  const inProgressCount = stages.filter((stage) => stage.status === "In Progress").length;
-  const totalCount = stages.length;
+  const addStage = () =>
+    setStages((previous) => [
+      ...previous,
+      {
+        id: previous.reduce((max, stage) => Math.max(max, stage.id), 0) + 1,
+        name: "",
+        description: "",
+        startWeek: 1,
+        endWeek: 2,
+        status: "Not Started",
+        responsible: "",
+        dependencies: "",
+      },
+    ]);
+
+  const removeStage = (id: number) =>
+    setStages((previous) => previous.filter((stage) => stage.id !== id));
+
+  const completed = stages.filter((stage) => stage.status === "Completed").length;
+  const inProgress = stages.filter((stage) => stage.status === "In Progress").length;
+  const percent = stages.length ? Math.round((completed / stages.length) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-zinc-50">
-      <header className="bg-white dark:bg-black border-b border-zinc-200 px-6 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-zinc-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16l-4-4 4-4m0 0l4 4-4 4m0-10l4 4-4 4m0 0l-4 4 4 4m0 6l4 4-4 4m0 0l-4-4 4-4m0 0l4-4-4-4m0 0l-4 4 4-4m0-6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/>
-            </svg>
+            <span className="text-white text-xs font-bold">DPR</span>
           </div>
           <div>
             <h2 className="font-semibold text-secondary text-lg">Implementation Schedule</h2>
             <p className="text-zinc-500 text-sm">DPR Preparation System</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-zinc-600 text-sm">DPR Workspace</span>
-          <button
-            onClick={() => {
-              localStorage.removeItem("dpr_user_type");
-              localStorage.removeItem("dpr_user_id");
-              router.push("/login");
-            }}
-            className="text-primary text-sm font-medium underline"
-          >
+        <div className="flex items-center gap-4">
+          {saved && <span className="text-xs text-primary">Saved</span>}
+          <button onClick={() => router.push("/dashboard")} className="text-primary text-sm font-medium underline">
             Home
           </button>
         </div>
       </header>
+
       <main className="p-6">
-        <div className="max-w-2xl mx-auto">
-          {/* Stages Table */}
-          <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
-            <h3 className="text-secondary font-medium mb-4">Project Implementation Stages</h3>
-            <p className="text-zinc-500 text-sm mb-4">
-              Standard project stages populated from PDF. Edit stage details, timing, and status as needed.
-            </p>
-            
-            <div className="card p-4 mb-4">
-              <h4 className="font-medium text-secondary mb-3">Standard Stages (from PDF)</h4>
-              <ol className="space-y-2 text-sm">
-                <li>
-                  <strong>1. Quotations inspection and customer enquiries</strong> (Weeks 1-2): Initial customer enquiries and quotation requests
-                </li>
-                <li>
-                  <strong>2. Bank appraisal and sanction</strong> (Weeks 3-8): Subject to lender processing and approval
-                </li>
-                <li>
-                  <strong>3. Promoter contribution and asset purchase</strong> (Weeks 9-12): After sanction, promoter contribution and used asset purchase
-                </li>
-                <li>
-                  <strong>4. Insurance commissioning and operator engagement</strong> (Weeks 13-14): Within 2 weeks after purchase, insurance commissioning and operator engagement
-                </li>
-                <li>
-                  <strong>5. Commercial operation and billing</strong> (Weeks 15-20): After equipment readiness, start billing customers
-                </li>
-              </ol>
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Summary */}
+          <section className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-secondary font-medium text-lg mb-3">Schedule Summary</h3>
+            <div className="grid grid-cols-3 gap-4 mb-4">
+              <div>
+                <p className="text-sm text-zinc-500">Stages</p>
+                <p className="text-2xl font-bold text-primary">{stages.length}</p>
+              </div>
+              <div>
+                <p className="text-sm text-zinc-500">Completed</p>
+                <p className="text-2xl font-bold text-primary">{completed}</p>
+              </div>
+              <div>
+                <p className="text-sm text-zinc-500">In progress</p>
+                <p className="text-2xl font-bold text-primary">{inProgress}</p>
+              </div>
             </div>
-            
-            {/* Editable Stages Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full rounded-border overflow-hidden">
-                <thead>
-                  <tr className="bg-primary/10 border-b border-zinc-200">
-                    <th className="p-3 text-left text-secondary font-medium">#</th>
-                    <th className="p-3 text-left text-secondary font-medium">Stage Name</th>
-                    <th className="p-3 text-left text-secondary font-medium">Description</th>
-                    <th className="p-3 text-left text-secondary font-medium">Start Week</th>
-                    <th className="p-3 text-left text-secondary font-medium">End Week</th>
-                    <th className="p-3 text-left text-secondary font-medium">Status</th>
-                    <th className="p-3 text-left text-secondary font-medium">Responsible</th>
-                    <th className="p-3 text-left text-secondary font-medium">Dependencies</th>
-                    <th className="p-3 text-left text-secondary font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stages.map((stage, i) => (
-                    <tr key={stage.id} className="border-b border-zinc-200">
-                      <td className="p-3 font-medium">{stage.id}</td>
-                      <td className="p-3">
-                        <input
-                          type="text"
-                          value={stage.name}
-                          onChange={(e) => setStages(prev => prev.map(s => s.id === stage.id ? { ...s, name: e.target.value } : s))}
-                          className="w-full rounded border-primary px-2 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                        />
-                      </td>
-                      <td className="p-3">
-                        <textarea
-                          value={stage.description || ""}
-                          onChange={(e) => setStages(prev => prev.map(s => s.id === stage.id ? { ...s, description: e.target.value } : s))}
-                          className="w-full rounded border-primary px-2 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20 resize-y"
-                          rows={2}
-                        />{" "}
-                        {stage.description || "(no description)"}
-                      </td>
-                      <td className="p-3">
-                        <input
-                          type="number"
-                          value={stage.startWeek || 1}
-                          onChange={(e) => setStages(prev => prev.map(s => s.id === stage.id ? { ...s, startWeek: Number(e.target.value) } : s))}
-                          className="w-full rounded border-primary px-2 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                          min={1}
-                        />
-                      </td>
-                      <td className="p-3">
-                        <input
-                          type="number"
-                          value={stage.endWeek || 2}
-                          onChange={(e) => setStages(prev => prev.map(s => s.id === stage.id ? { ...s, endWeek: Number(e.target.value) } : s))}
-                          className="w-full rounded border-primary px-2 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                          min={1}
-                        />
-                      </td>
-                      <td className="p-3">
-                        <select
-                          value={stage.status || "Not Started"}
-                          onChange={(e) => setStages(prev => prev.map(s => s.id === stage.id ? { ...s, status: e.target.value } : s))}
-                          className="w-full rounded border-primary px-2 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                        >
-                          <option value="Not Started">Not Started</option>
-                          <option value="In Progress">In Progress</option>
-                          <option value="Completed">Completed</option>
-                          <option value="Delayed">Delayed</option>
-                        </select>
-                      </td>
-                      <td className="p-3">
-                        <input
-                          type="text"
-                          value={stage.responsible || ""}
-                          onChange={(e) => setStages(prev => prev.map(s => s.id === stage.id ? { ...s, responsible: e.target.value } : s))}
-                          className="w-full rounded border-primary px-2 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                        />
-                      </td>
-                      <td className="p-3">
-                        <input
-                          type="text"
-                          value={stage.dependencies || ""}
-                          onChange={(e) => setStages(prev => prev.map(s => s.id === stage.id ? { ...s, dependencies: e.target.value } : s))}
-                          className="w-full rounded border-primary px-2 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                        />
-                      </td>
-                      <td className="p-3">
-                        <button
-                          onClick={() => removeStage(stage.id)}
-                          className="text-red-600 text-sm hover:underline"
-                        >
-                          Remove
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
+              <div className="h-full bg-primary" style={{ width: `${percent}%` }} />
             </div>
-            
-            {/* Add New Stage Form */}
-            <div className="mt-4 p-3 rounded-md bg-primary/10 border-primary">
-              <h4 className="font-medium text-secondary mb-2">Add New Stage</h4>
-              <div className="grid grid-cols-2 gap-3">
+            <p className="text-xs text-zinc-500 mt-2">{percent}% of stages completed</p>
+          </section>
+
+          {/* Stages */}
+          {stages.map((stage, index) => (
+            <section key={stage.id} className="bg-white rounded-lg shadow-sm p-6">
+              <div className="flex items-start justify-between gap-4 mb-4">
                 <div>
-                  <label className="block text-sm font-medium text-secondary">Stage Name</label>
+                  <p className="text-xs uppercase tracking-wide text-zinc-500">Stage {index + 1}</p>
+                  <h4 className="text-secondary font-medium">{stage.name || "Untitled stage"}</h4>
+                </div>
+                <button
+                  onClick={() => removeStage(stage.id)}
+                  className="text-red-600 text-sm hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-secondary mb-1">Stage name</label>
                   <input
-                    type="text"
-                    value={newStage.name}
-                    onChange={(e) => setNewStage(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full rounded border-primary px-2 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="e.g., Site preparation"
+                    className={field}
+                    value={stage.name}
+                    onChange={(event) => patch(stage.id, { name: event.target.value })}
+                    placeholder="Stage name"
                   />
                 </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-secondary mb-1">Description</label>
+                  <textarea
+                    className={field}
+                    rows={2}
+                    value={stage.description}
+                    onChange={(event) => patch(stage.id, { description: event.target.value })}
+                    placeholder="What happens in this stage"
+                  />
+                </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-secondary">Start Week</label>
+                  <label className="block text-sm font-medium text-secondary mb-1">Start week</label>
                   <input
                     type="number"
-                    value={newStage.startWeek}
-                    onChange={(e) => setNewStage(prev => ({ ...prev, startWeek: Number(e.target.value) }))}
-                    className="w-full rounded border-primary px-2 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
                     min={1}
-                    placeholder="1"
+                    className={field}
+                    value={stage.startWeek}
+                    onChange={(event) => patch(stage.id, { startWeek: Number(event.target.value) })}
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-secondary">End Week</label>
+                  <label className="block text-sm font-medium text-secondary mb-1">End week</label>
                   <input
                     type="number"
-                    value={newStage.endWeek}
-                    onChange={(e) => setNewStage(prev => ({ ...prev, endWeek: Number(e.target.value) }))}
-                    className="w-full rounded border-primary px-2 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
                     min={1}
-                    placeholder="2"
+                    className={field}
+                    value={stage.endWeek}
+                    onChange={(event) => patch(stage.id, { endWeek: Number(event.target.value) })}
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-secondary">Dependencies</label>
+                  <label className="block text-sm font-medium text-secondary mb-1">Status</label>
+                  <select
+                    className={field}
+                    value={stage.status}
+                    onChange={(event) => patch(stage.id, { status: event.target.value })}
+                  >
+                    {STATUSES.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-secondary mb-1">Responsible</label>
                   <input
-                    type="text"
-                    value={newStage.dependencies}
-                    onChange={(e) => setNewStage(prev => ({ ...prev, dependencies: e.target.value }))}
-                    className="w-full rounded border-primary px-2 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    placeholder="e.g., 1,3 (comma-separated)"
+                    className={field}
+                    value={stage.responsible}
+                    onChange={(event) => patch(stage.id, { responsible: event.target.value })}
+                    placeholder="Applicant / operator"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-secondary mb-1">Dependencies</label>
+                  <input
+                    className={field}
+                    value={stage.dependencies}
+                    onChange={(event) => patch(stage.id, { dependencies: event.target.value })}
+                    placeholder="Stage numbers, e.g. 1, 2"
                   />
                 </div>
               </div>
-              <button
-                onClick={addStage}
-                className="btn-primary w-full mt-2 py-2"
-              >
-                Add Stage
-              </button>
-            </div>
-          </div>
+            </section>
+          ))}
 
-          {/* Stage Summary */}
-          <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
-            <h3 className="text-secondary font-medium mb-4">Schedule Summary</h3>
-            <p className="text-zinc-500 text-sm mb-3">
-              Total stages: {stages.length} out of 5 standard stages.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-3">
-              {stages.map((stage) => (
-                <div key={stage.id} className={stage.status === 'Completed' ? 'p-3 rounded-md bg-green-100' : stage.status === 'In Progress' ? 'p-3 rounded-md bg-primary/10' : 'p-3 rounded-md bg-zinc-100'}>
-                  <p className="font-medium text-secondary">{stage.name}</p>
-                  <p className="text-xs text-zinc-500">Weeks {stage.startWeek}-{stage.endWeek} | {stage.status}</p>
-                  {stage.dependencies && <p className="text-xs text-zinc-500 mt-1">Dep: {stage.dependencies}</p>}
-                </div>
-              ))}
-            </div>
-            
-            {/* Completion status */}
-            <div className={completedCount === totalCount ? 'mt-3 p-2 rounded-md bg-green-100 border border-green-500' : 'mt-3 p-2 rounded-md bg-primary/10 border border-primary'}>
-              <p className="font-medium text-secondary">Progress: {completedCount}/{totalCount} stages completed</p>
-              {inProgressCount > 0 && <p className="text-xs text-zinc-500">{inProgressCount} stage(s) in progress</p>}
-            </div>
-          </div>
+          <button onClick={addStage} className="btn-secondary w-full">
+            + Add stage
+          </button>
 
-          {/* Action Buttons */}
-          <div className="mt-8 flex gap-4">
+          <div className="flex gap-3 pb-6">
             <button
-              onClick={handleSave}
+              onClick={() => {
+                localStorage.setItem("implementationSchedule", JSON.stringify(stages));
+                setSaved(true);
+                router.push("/document-management");
+              }}
               className="btn-primary"
             >
-              {userType === 'applicant' ? 'Save & Continue' : 'Save & Continue'}
+              Save & continue
             </button>
-            <button
-              onClick={handleBack}
-              className="btn-secondary"
-            >
-              Back to Dashboard
+            <button onClick={() => router.push("/dashboard")} className="btn-secondary">
+              Back to dashboard
             </button>
           </div>
         </div>
