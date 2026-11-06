@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* Register the CA-firm palette with Tailwind so bg-primary, text-secondary,
+   border-accent and their opacity variants actually generate utilities. */
+@theme {
+  --color-primary: #1a365d;
+  --color-secondary: #2d3748;
+  --color-accent: #d69e2e;
+}
+
 /* CA-Firm Color Palette */
 :root {
   --ca-primary: #1a365d;      /* Deep navy - trust, authority */
