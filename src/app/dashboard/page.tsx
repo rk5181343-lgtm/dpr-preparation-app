@@ -55,7 +55,7 @@ const INITIAL_PROJECTS: ProjectCard[] = [
     name: "Kalicheti Earthmovers - Nellore",
     clientName: "Kalicheti Vijay Kumar Reddy",
     status: "in_progress",
-    progress: 65,
+    progress: 60,
     screenReached: 9,
   },
   {
