@@ -1,178 +1,139 @@
 /*
  * Login Page - DPR Preparation Application
- * 
- * Provides authentication entry point with two user types:
- * - Chartered Accountant: Full access to all firm projects, review capabilities, all 18 screens
- * - Applicant: Own project only, limited to screens 1-17, cannot access CA review workflow
- * 
- * Design Reference: DPR UI Design Specification, Screen 1: Login
+ * Screen 1: Authentication entry point for CA firms and applicants.
  */
 
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [userType, setUserType] = useState<'ca' | 'applicant'>('applicant');
-  const [userId, setUserId] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
+  const [userType, setUserType] = useState<"ca" | "applicant">("ca");
+  const [userId, setUserId] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
-  // Check for existing session on mount
+  // Existing session goes straight to the dashboard
   useEffect(() => {
     const storedType = localStorage.getItem("dpr_user_type");
     const storedId = localStorage.getItem("dpr_user_id");
-
     if (storedType && storedId) {
-      setUserType(storedType as 'ca' | 'applicant');
-      setUserId(storedId);
-      // Redirect based on user type after a brief moment
-      const redirectTarget = storedType === 'ca' 
-        ? '/dashboard' 
-        : '/my-projects';
-      setTimeout(() => {
-        window.location.href = redirectTarget;
-      }, 500);
+      router.replace("/dashboard");
     }
-  }, []);
+  }, [router]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const handleLogin = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError(null);
 
-    // Simulate authentication - in production, this would call an auth API
-    // For now, we accept any credentials and redirect based on user type
-    const validCredentials = 
-      (userType === 'ca' && userId.startsWith('CA-')) ||
-      (userType === 'applicant' && userId.length >= 3);
+    const trimmed = userId.trim();
+    const isValid =
+      userType === "ca" ? /^CA-/i.test(trimmed) : trimmed.length >= 3;
 
-    if (validCredentials) {
-      // Store session
-      localStorage.setItem("dpr_user_type", userType);
-      localStorage.setItem("dpr_user_id", userId);
-      
-      const redirectTarget = userType === 'ca' 
-        ? '/dashboard' 
-        : '/my-projects';
-      
-      setTimeout(() => {
-        window.location.href = redirectTarget;
-      }, 500);
-    } else {
-      setError("Invalid user ID or password. Please try again.");
-      setIsLoading(false);
+    if (!isValid) {
+      setError(
+        userType === "ca"
+          ? "Enter a CA user ID such as CA-123456."
+          : "Enter an applicant ID of at least 3 characters."
+      );
+      return;
     }
+
+    setIsLoading(true);
+    localStorage.setItem("dpr_user_type", userType);
+    localStorage.setItem("dpr_user_id", trimmed);
+    router.push("/dashboard");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-black rounded-lg shadow-lg">
-        <div className="flex items-center justify-center h-12">
-          <img
-            src="/next.svg"
-            alt="DPR System"
-            className="dark:invert h-10 w-auto"
-            width={100}
-            height={36}
-          />
+    <div className="min-h-screen flex items-center justify-center bg-zinc-50 px-4 py-12">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
+        {/* Brand mark */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="w-14 h-14 rounded-md bg-[#1a365d] flex items-center justify-center mb-3">
+            <span className="text-white font-bold tracking-wide">DPR</span>
+          </div>
+          <h1 className="text-xl font-semibold text-[#1a365d] text-center">
+            DPR Preparation System
+          </h1>
+          <p className="text-sm text-zinc-500 mt-1 text-center">
+            Earthmoving equipment rental · MUDRA Tarun
+          </p>
         </div>
 
-        <h2 className="text-xl font-semibold text-center mb-6 text-black dark:text-zinc-50">
-          DPR Preparation System
-        </h2>
-
-        {/* User Type Selector */}
-        <div className="space-y-4 mb-8">
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="user-type"
-              value="ca"
-              checked={userType === 'ca'}
-              onChange={(e) => setUserType('ca')}
-              className="w-4 h-4 rounded border-primary cursor-pointer"
-            />
-            <span>Chartered Accountant</span>
-          </label>
-          <label className="flex items-center gap-2">
-            <input
-              type="radio"
-              name="user-type"
-              value="applicant"
-              checked={userType === 'applicant'}
-              onChange={(e) => setUserType('applicant')}
-              className="w-4 h-4 rounded border-primary cursor-pointer"
-            />
-            <span>Applicant</span>
-          </label>
-        </div>
-
-        {/* Login Form */}
-        {userType === 'ca' && (
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2 text-secondary">
-                CA User ID
+        <form onSubmit={handleLogin} className="space-y-5">
+          {/* User type */}
+          <fieldset>
+            <legend className="block text-sm font-medium text-[#2d3748] mb-2">
+              Sign in as
+            </legend>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="flex items-center gap-2 border border-zinc-300 rounded-md px-3 py-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="user-type"
+                  value="ca"
+                  checked={userType === "ca"}
+                  onChange={() => setUserType("ca")}
+                />
+                <span className="text-sm text-[#2d3748]">CA Firm</span>
               </label>
-              <input
-                type="text"
-                placeholder="CA-XXXXXX"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                required
-                className="w-full rounded border-primary px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
-              />
-            </div>
-          </form>
-        )}
-
-        {userType === 'applicant' && (
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2 text-secondary">
-                Applicant ID
+              <label className="flex items-center gap-2 border border-zinc-300 rounded-md px-3 py-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="user-type"
+                  value="applicant"
+                  checked={userType === "applicant"}
+                  onChange={() => setUserType("applicant")}
+                />
+                <span className="text-sm text-[#2d3748]">Applicant</span>
               </label>
-              <input
-                type="text"
-                placeholder="APL-XXX"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                required
-                className="w-full rounded border-primary px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
-              />
             </div>
-          </form>
-        )}
+          </fieldset>
 
-        {/* Error message */}
-        {error && (
-          <div className="alert alert-error rounded-md mb-6">
-            <span className="font-medium">{error}</span>
+          {/* User ID */}
+          <div>
+            <label
+              htmlFor="userId"
+              className="block text-sm font-medium text-[#2d3748] mb-2"
+            >
+              {userType === "ca" ? "CA User ID" : "Applicant ID"}
+            </label>
+            <input
+              id="userId"
+              type="text"
+              placeholder={userType === "ca" ? "CA-123456" : "APL-001"}
+              value={userId}
+              onChange={(event) => setUserId(event.target.value)}
+              autoComplete="username"
+              required
+            />
+            <p className="text-xs text-zinc-500 mt-1">
+              {userType === "ca"
+                ? "CA IDs start with CA- and unlock all 18 screens."
+                : "Applicants can access screens 1-17."}
+            </p>
           </div>
-        )}
 
-        {/* Loading state */}
-        {isLoading && (
-          <div className="alert alert-warning rounded-md">
-            <span className="font-medium">Signing in...</span>
-          </div>
-        )}
+          {error && (
+            <div className="alert-alert alert-error rounded-md">
+              <span className="font-medium text-sm">{error}</span>
+            </div>
+          )}
 
-        {/* CTA Button */}
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full btn-primary py-3 rounded-md font-medium text-lg transition-colors hover:bg-[#2d3a6e]"
-        >
-          {isLoading ? "Signing in..." : "Continue"}
-        </button>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="btn-primary w-full py-3"
+          >
+            {isLoading ? "Signing in…" : "Continue"}
+          </button>
+        </form>
 
-        <p className="text-center mt-6 text-sm text-zinc-600 dark:text-zinc-400">
-          <a href="#/" className="font-medium underline">
-            Forgot credentials?
-          </a>
+        <p className="text-center text-sm text-zinc-500 mt-6">
+          Demo build — any ID in the formats above signs you in.
         </p>
       </div>
     </div>
