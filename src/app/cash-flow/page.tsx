@@ -23,7 +23,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function CashFlowPage() {
-  const [userType, setUserType] = useState<'ca' | 'applicant'>('applicant');
+  const [userType, setUserType] = useState<'ca' | 'applicant'>('ca');
   const router = useRouter();
 
   useEffect(() => {

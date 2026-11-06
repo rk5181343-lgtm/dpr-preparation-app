@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function ProjectCreationPage() {
-  const [userType, setUserType] = useState<'ca' | 'applicant'>('applicant');
+  const [userType, setUserType] = useState<'ca' | 'applicant'>('ca');
   const [projectType, setProjectType] = useState<string>("");
   const router = useRouter();
 

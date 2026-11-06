@@ -75,7 +75,7 @@ const SCREEN_ROUTES: Record<number, string> = {
 };
 
 export default function DashboardPage() {
-  const [userType, setUserType] = useState<'ca' | 'applicant'>('applicant');
+  const [userType, setUserType] = useState<'ca' | 'applicant'>('ca');
   const [projects, setProjects] = useState<ProjectCard[]>(DUMMY_PROJECTS);
   const router = useRouter();
 

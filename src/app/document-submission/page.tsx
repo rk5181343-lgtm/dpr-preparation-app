@@ -41,7 +41,7 @@ const REQUIRED_COUNT = documentCategories.filter((category) => category.required
 const MIN_COMPLIANCE = 80;
 
 export default function DocumentSubmissionPage() {
-  const [userType, setUserType] = useState<"ca" | "applicant">("applicant");
+  const [userType, setUserType] = useState<"ca" | "applicant">("ca");
   const [uploaded, setUploaded] = useState<number[]>([]);
   const [verified, setVerified] = useState<number[]>([]);
   const [message, setMessage] = useState<string>("");

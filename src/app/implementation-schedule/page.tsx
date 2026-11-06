@@ -43,7 +43,7 @@ type Stage = {
 };
 
 export default function ImplementationSchedulePage() {
-  const [userType, setUserType] = useState<'ca' | 'applicant'>('applicant');
+  const [userType, setUserType] = useState<'ca' | 'applicant'>('ca');
   const router = useRouter();
 
   useEffect(() => {

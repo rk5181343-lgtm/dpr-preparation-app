@@ -20,7 +20,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoanRepaymentPage() {
-  const [userType, setUserType] = useState<'ca' | 'applicant'>('applicant');
+  const [userType, setUserType] = useState<'ca' | 'applicant'>('ca');
   const [loanAmount, setLoanAmount] = useState(1000000); // Rs. 10 lakh default
   const [interestRate, setInterestRate] = useState(12); // 12% default
   const [tenureMonths, setTenureMonths] = useState(60); // 60 months default
