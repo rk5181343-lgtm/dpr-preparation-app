@@ -291,7 +291,7 @@ export default function FinalReportsPage() {
                 </span>
               </label>
               <p className="text-zinc-500 text-xs mt-1">
-                Contents: All project stages with indicative timing (Quotations inspection Weeks 1-2, Bank appraisal Subject to lender, Promoter contribution After sanction, Insurance commissioning Within 2 weeks after purchase, Commercial operation After equipment readiness), responsible persons (applicant/CA), dependencies between stages, status tracking (Not Started/In Progress/Completed/Delayed), critical path identification, Gantt chart or timeline view
+                Contents: All project stages with indicative timing (Quotations inspection Weeks 1-2, Bank appraisal Subject to lender, Promoter contribution After sanction, Insurance commissioning Within 2 weeks after purchase, Commercial operation After equipment readiness), responsible persons (applicant/operator), dependencies between stages, status tracking (Not Started/In Progress/Completed/Delayed), critical path identification, Gantt chart or timeline view
               </p>
             </div>
 
