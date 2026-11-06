@@ -1,7 +1,7 @@
 /* 
- * Conclusion & Confirmation - DPR Preparation Application
- * Screen 16: Conclusion & Confirmation
- * 18-screen workflow: Login → Dashboard → Client Mgmt → Project Creation → Project Information → Document Submission → Loan Repayment → Cash Flow → Break-Even → Balance Sheet → Implementation Schedule → Document Management → Risk Assessment → Conclusion & Confirmation → ... 
+ * Conclusion & Conorganisationation - DPR Preparation Application
+ * Screen 16: Conclusion & Conorganisationation
+ * 18-screen workflow: Login → Dashboard → Client Mgmt → Project Creation → Project Information → Document Submission → Loan Repayment → Cash Flow → Break-Even → Balance Sheet → Implementation Schedule → Document Management → Risk Assessment → Conclusion & Conorganisationation → ... 
  * 
  * Integrates with:
    - Risk Assessment: Risks assessed, summary report generated
@@ -9,14 +9,14 @@
    - Dashboard: Project selection and navigation
  * 
  * Per SRS Section 15 and Screen 16 Requirements:
-   - Applicant confirmation statement (read-only, auto-generated)
-   - Personal and business information accuracy confirmation (mandatory checkbox)
-   - Financial projections understanding confirmation (mandatory checkbox: "I understand projections are estimates")
-   - Machine quotation reliance confirmation (mandatory checkbox: "Quotations are planning assumptions, not confirmed orders")
+   - Applicant conorganisationation statement (read-only, auto-generated)
+   - Personal and business information accuracy conorganisationation (mandatory checkbox)
+   - Financial projections understanding conorganisationation (mandatory checkbox: "I understand projections are estimates")
+   - Machine quotation reliance conorganisationation (mandatory checkbox: "Quotations are planning assumptions, not conorganisationed orders")
    - Signature field (digital signature or typed name)
    - Date of declaration (auto-filled with current date, editable)
    - Place/location (mandatory, defaults to applicant address city)
-   - Actions: "Preview DPR" button, "Submit for CA Review" button, "Download Completed DPR" button
+   - Actions: "Preview DPR" button, "Submit DPR" button, "Download Completed DPR" button
    - Validations: All mandatory fields must be filled before actions enabled
  */
 
@@ -72,9 +72,9 @@ export default function ConclusionPage() {
     setDeclarationDate(new Date());
   }, []);
 
-  // Generate auto-generated confirmation statement
-  const confirmationStatement = infoAccuracy && projectionsUnderstanding && quotationReliance
-    ? "I hereby confirm that all information provided in this Detailed Project Report is true and correct to the best of my knowledge. I understand that the financial projections are estimates and rely on the machine quotations as planning assumptions, not confirmed orders."
+  // Generate auto-generated conorganisationation statement
+  const conorganisationationStatement = infoAccuracy && projectionsUnderstanding && quotationReliance
+    ? "I hereby conorganisation that all information provided in this Detailed Project Report is true and correct to the best of my knowledge. I understand that the financial projections are estimates and rely on the machine quotations as planning assumptions, not conorganisationed orders."
     : "";
 
   // Generate preview DPR
@@ -98,7 +98,7 @@ export default function ConclusionPage() {
     // Store preview data and navigate
     localStorage.setItem("dprPreviewData", JSON.stringify(previewData));
     
-    // Applicants limited to screens 1-17, CA firms to all 18
+    // All screens are available
     if (userType === 'applicant') {
       router.push("/final-reports");
     } else {
@@ -106,16 +106,16 @@ export default function ConclusionPage() {
     }
   };
 
-  // Submit for CA Review
+  // Submit DPR
   const submitForReview = () => {
     if (!isFormComplete) {
-      alert("Please complete all mandatory fields before submitting for CA Review.");
+      alert("Please complete all mandatory fields before submitting for Final Review.");
       return;
     }
     
-    // In a real system, this would route to CA workflow
+    // In a real system, this would route to approval workflow
     // For now, simulate and navigate
-    alert("DPR submitted for CA Review. Reference number will be provided upon CA assignment.");
+    alert("DPR submitted. A reference number will be generated.");
     
     // Navigate based on user type
     if (userType === 'applicant') {
@@ -147,12 +147,12 @@ export default function ConclusionPage() {
             </svg>
           </div>
           <div>
-            <h2 className="font-semibold text-secondary text-lg">Conclusion & Confirmation</h2>
+            <h2 className="font-semibold text-secondary text-lg">Conclusion & Conorganisationation</h2>
             <p className="text-zinc-500 text-sm">DPR Preparation System</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-zinc-600 text-sm">Welcome, {userType === 'ca' ? 'CA Firm' : 'Applicant'}</span>
+          <span className="text-zinc-600 text-sm">DPR Workspace</span>
           <button
             onClick={() => {
               localStorage.removeItem("dpr_user_type");
@@ -161,25 +161,25 @@ export default function ConclusionPage() {
             }}
             className="text-primary text-sm font-medium underline"
           >
-            Sign Out
+            Home
           </button>
         </div>
       </header>
       <main className="p-6">
         <div className="max-w-2xl mx-auto">
-          {/* Confirmation Form */}
+          {/* Conorganisationation Form */}
           <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
-            <h3 className="text-secondary font-medium mb-4">Applicant Declaration and Confirmation</h3>
+            <h3 className="text-secondary font-medium mb-4">Applicant Declaration and Conorganisationation</h3>
             
             <p className="text-zinc-500 text-sm mb-4">
-              Please confirm that all information provided in this Detailed Project Report is true and correct, and that you understand the nature of the financial projections.
+              Please conorganisation that all information provided in this Detailed Project Report is true and correct, and that you understand the nature of the financial projections.
             </p>
             
-            {/* Confirmation Statement */}
-            {confirmationStatement && (
+            {/* Conorganisationation Statement */}
+            {conorganisationationStatement && (
               <div className="bg-primary/10 border-primary rounded-padding p-4 mb-6">
-                <p className="font-medium text-secondary mb-2">Confirmation Statement:</p>
-                <p className="text-sm leading-relaxed">{confirmationStatement}</p>
+                <p className="font-medium text-secondary mb-2">Conorganisationation Statement:</p>
+                <p className="text-sm leading-relaxed">{conorganisationationStatement}</p>
               </div>
             )}
             
@@ -194,7 +194,7 @@ export default function ConclusionPage() {
                     className="w-4 h-4 rounded border-primary cursor-pointer"
                   />
                   <span>
-                    I confirm that all personal and business information provided in this DPR is accurate and complete.
+                    I conorganisation that all personal and business information provided in this DPR is accurate and complete.
                   </span>
                 </label>
               </div>
@@ -220,7 +220,7 @@ export default function ConclusionPage() {
                     className="w-4 h-4 rounded border-primary cursor-pointer"
                   />
                   <span>
-                    Quotations are planning assumptions, not confirmed orders.
+                    Quotations are planning assumptions, not conorganisationed orders.
                   </span>
                 </label>
               </div>
@@ -285,7 +285,7 @@ export default function ConclusionPage() {
               disabled={!isFormComplete}
               className={isFormComplete ? 'btn-primary' : 'btn-secondary opacity-50'}
             >
-              {isFormComplete ? 'Submit for CA Review' : 'Complete Mandatory Fields First'}
+              {isFormComplete ? 'Submit DPR' : 'Complete Mandatory Fields First'}
             </button>
             <button
               onClick={handleBack}

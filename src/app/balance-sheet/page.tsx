@@ -98,7 +98,7 @@ export default function BalanceSheetPage() {
   ];
 
   const handleSubmit = () => {
-    // Balance sheet always available; applicants limited to screens 1-17, CA firms to all 18
+    // Balance sheet always available; All screens are available, all screens
     if (userType === 'applicant') {
       router.push("/implementation-schedule");
     } else {
@@ -121,7 +121,7 @@ export default function BalanceSheetPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-zinc-600 text-sm">Welcome, {userType === 'ca' ? 'CA Firm' : 'Applicant'}</span>
+          <span className="text-zinc-600 text-sm">DPR Workspace</span>
           <button
             onClick={() => {
               localStorage.removeItem("dpr_user_type");
@@ -130,7 +130,7 @@ export default function BalanceSheetPage() {
             }}
             className="text-primary text-sm font-medium underline"
           >
-            Sign Out
+            Home
           </button>
         </div>
       </header>
@@ -232,7 +232,7 @@ export default function BalanceSheetPage() {
               onClick={handleSubmit}
               className="btn-primary"
             >
-              {userType === 'applicant' ? 'Proceed to Break-Even Review' : 'Continue to CA Review Workflow'}
+              {userType === 'applicant' ? 'Proceed to Break-Even Review' : 'Continue'}
             </button>
             <button
               onClick={() => router.push('/dashboard')}

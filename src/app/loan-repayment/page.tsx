@@ -120,9 +120,9 @@ export default function LoanRepaymentPage() {
   const year1DSCR = dscrData[0].dscr;
   const minDSCR = 2.0;
 
-  // Pending CA Confirmation badges (Categories 7 & 8 per formula register)
-  const loanRepaymentPending = year1DSCR >= minDSCR && false || true; // Placeholder - will be confirmed by CA
-  const interestRatePending = true; // 12% rate pending CA confirmation
+  // Assumption to validate badges (Categories 7 & 8 per formula register)
+  const loanRepaymentPending = year1DSCR >= minDSCR && false || true; // Placeholder - will be validated
+  const interestRatePending = true; // 12% rate to be validated
 
   const handleSubmit = () => {
     // Validate DSCR Year 1 ≥ 2.0 for MUDRA Tarun category eligibility
@@ -131,7 +131,7 @@ export default function LoanRepaymentPage() {
       return;
     }
     
-    // Applicants limited to screens 1-17, CA firms to all 18
+    // All screens are available
     if (userType === 'applicant') {
       router.push("/cash-flow");
     } else {
@@ -154,7 +154,7 @@ export default function LoanRepaymentPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-zinc-600 text-sm">Welcome, {userType === 'ca' ? 'CA Firm' : 'Applicant'}</span>
+          <span className="text-zinc-600 text-sm">DPR Workspace</span>
           <button
             onClick={() => {
               localStorage.removeItem("dpr_user_type");
@@ -163,7 +163,7 @@ export default function LoanRepaymentPage() {
             }}
             className="text-primary text-sm font-medium underline"
           >
-            Sign Out
+            Home
           </button>
         </div>
       </header>
@@ -249,7 +249,7 @@ export default function LoanRepaymentPage() {
             </div>
             
             <p className="text-secondary">
-              Total interest outflow over {tenureMonths} months: 
+              Total interest outflow over {tenureMonths} months:{" "}
               {(emi * tenureMonths - loanAmount).toLocaleString()} (~{(((emi * tenureMonths - loanAmount) / loanAmount) * 100).toFixed(1)}% of principal)
             </p>
           </div>
@@ -301,7 +301,7 @@ export default function LoanRepaymentPage() {
                 <span className="font-bold">Year 1 DSCR:</span> {year1DSCR.toFixed(2)}x 
                 {year1DSCR >= minDSCR ? '✅ Meets MUDRA Tarun minimum' : '❌ Below minimum - requires adjustment'} 
                 {loanRepaymentPending && (
-                  <span className="text-warning text-xs ml-2">⚠️ Pending CA Confirmation</span>
+                  <span className="text-warning text-xs ml-2">⚠️ Assumption to validate</span>
                 )}
                 <br />
                 <span className="font-bold">Year 5 DSCR:</span> {dscrData[4].dscr.toFixed(2)}x 

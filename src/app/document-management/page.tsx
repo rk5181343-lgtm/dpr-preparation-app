@@ -19,7 +19,7 @@
    - Verification status: pending/verified/rejected
    - Verification notes by reviewer
    - Project completeness score: (verified documents / total required) × 100
-   - Minimum 80% compliance required before CA review submission
+   - Minimum 80% compliance required before submission
  */
 
 "use client";
@@ -103,10 +103,10 @@ export default function DocumentManagementPage() {
     }, 1000);
   };
 
-  // Verify a document (CA firm only)
+  // Verify a document
   const verifyDocument = (categoryId: number, status: 'verified' | 'rejected', notes: string) => {
     const category = documentCategories.find(c => c.id === categoryId);
-    if (!category || userType !== 'ca') return;
+    if (!category) return;
     
     // In a real system, this would call an API to update verification status
     // For demo, just update locally
@@ -124,11 +124,11 @@ export default function DocumentManagementPage() {
 
   const handleSubmit = () => {
     if (!meetsCompliance) {
-      alert("Minimum 80% document compliance required before submitting for CA review. Please upload more documents.");
+      alert("Minimum 80% document compliance required before submitting. Please upload more documents.");
       return;
     }
     
-    // Applicants limited to screens 1-17, CA firms to all 18
+    // All screens are available
     if (userType === 'applicant') {
       router.push("/risk-assessment");
     } else {
@@ -151,7 +151,7 @@ export default function DocumentManagementPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-zinc-600 text-sm">Welcome, {userType === 'ca' ? 'CA Firm' : 'Applicant'}</span>
+          <span className="text-zinc-600 text-sm">DPR Workspace</span>
           <button
             onClick={() => {
               localStorage.removeItem("dpr_user_type");
@@ -160,7 +160,7 @@ export default function DocumentManagementPage() {
             }}
             className="text-primary text-sm font-medium underline"
           >
-            Sign Out
+            Home
           </button>
         </div>
       </header>
@@ -170,7 +170,7 @@ export default function DocumentManagementPage() {
           <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
             <h3 className="text-secondary font-medium mb-4">Compliance Status</h3>
             <p className="text-zinc-500 text-sm mb-4">
-              12 mandatory document categories required for MUDRA Tarun submission. Minimum 80% compliance required before CA review submission.
+              12 mandatory document categories required for MUDRA Tarun submission. Minimum 80% compliance required before submission.
             </p>
             
             <div className="grid grid-cols-2 gap-3 mb-4">
@@ -197,17 +197,20 @@ export default function DocumentManagementPage() {
             
             {compliancePercentage >= 80 && userType === 'applicant' && (
               <p className="mt-2 text-primary text-sm">
-                ✅ 80% compliance reached → "Submit for CA Review" available
+                ✅ 80% compliance reached → "Submit DPR" available
               </p>
-            )}\n\n{compliancePercentage < 80 && userType === 'applicant' && (
+            )}
+{compliancePercentage < 80 && userType === 'applicant' && (
               <p className="mt-2 text-red-600 text-sm">
                 ❌ Minimum 80% not met. Upload more documents before submitting.
               </p>
-            )}\n\n{userType === 'ca' && compliancePercentage >= 80 && (
+            )}
+{userType === 'ca' && compliancePercentage >= 80 && (
               <p className="mt-2 text-primary text-sm">
-                ✅ 80% compliance reached. CA can review documents.
+                ✅ 80% compliance reached. documents are ready for review.
               </p>
-            )}\n\n{compliancePercentage < 80 && userType === 'ca' && (
+            )}
+{compliancePercentage < 80 && userType === 'ca' && (
               <p className="mt-2 text-red-600 text-sm">
                 ❌ Minimum 80% not met. Upload more documents.
               </p>
@@ -313,7 +316,7 @@ export default function DocumentManagementPage() {
               disabled={!meetsCompliance && userType === 'applicant'}
               className={!meetsCompliance && userType === 'applicant' ? 'btn-secondary opacity-50' : 'btn-primary'}
             >
-              {compliancePercentage < 80 && userType === 'applicant' ? 'Upload More Documents' : userType === 'applicant' ? 'Submit for CA Review' : 'Continue to CA Review'}
+              {compliancePercentage < 80 && userType === 'applicant' ? 'Upload More Documents' : userType === 'applicant' ? 'Submit DPR' : 'Continue'}
             </button>
             <button
               onClick={handleBack}

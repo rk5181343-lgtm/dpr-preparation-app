@@ -35,7 +35,7 @@ export default function ProjectCreationPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-zinc-600 text-sm">Welcome, {userType === 'ca' ? 'CA Firm' : 'Applicant'}</span>
+          <span className="text-zinc-600 text-sm">DPR Workspace</span>
           <button
             onClick={() => {
               localStorage.removeItem("dpr_user_type");
@@ -44,7 +44,7 @@ export default function ProjectCreationPage() {
             }}
             className="text-primary text-sm font-medium underline"
           >
-            Sign Out
+            Home
           </button>
         </div>
       </header>

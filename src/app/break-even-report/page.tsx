@@ -119,7 +119,7 @@ export default function BreakEvenReportPage() {
 
   const handleGenerateReport = () => {
     // Generate break-even and sensitivity report
-    // Applicants limited to screens 1-17, CA firms to all 18
+    // All screens are available
     if (userType === 'applicant') {
       router.push("/implementation-schedule");
     } else {
@@ -146,7 +146,7 @@ export default function BreakEvenReportPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-zinc-600 text-sm">Welcome, {userType === 'ca' ? 'CA Firm' : 'Applicant'}</span>
+          <span className="text-zinc-600 text-sm">DPR Workspace</span>
           <button
             onClick={() => {
               localStorage.removeItem("dpr_user_type");
@@ -155,7 +155,7 @@ export default function BreakEvenReportPage() {
             }}
             className="text-primary text-sm font-medium underline"
           >
-            Sign Out
+            Home
           </button>
         </div>
       </header>
@@ -264,7 +264,7 @@ export default function BreakEvenReportPage() {
               onClick={handleGenerateReport}
               className="btn-primary"
             >
-              {userType === 'applicant' ? 'Proceed to CA Review Workflow' : 'Generate Full DPR Report'}
+              {userType === 'applicant' ? 'Proceed' : 'Generate Full DPR Report'}
             </button>
             <button
               onClick={handleBack}

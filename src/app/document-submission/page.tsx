@@ -4,7 +4,7 @@
  * 18-screen workflow: Login → Dashboard → Client Mgmt → Project Creation → Project Information → Document Submission → Loan Repayment → ...
  *
  * 13 mandatory document categories for MUDRA Tarun submission.
- * Minimum 80% compliance required before the file can go for CA review.
+ * Minimum 80% compliance required before the file can be submitted.
  */
 
 "use client";
@@ -92,7 +92,7 @@ export default function DocumentSubmissionPage() {
   const handleSubmit = () => {
     if (!meetsMinimum) {
       setMessage(
-        `Minimum ${MIN_COMPLIANCE}% document compliance required before CA review. Current: ${compliancePercentage}%.`
+        `Minimum ${MIN_COMPLIANCE}% document compliance required before submission. Current: ${compliancePercentage}%.`
       );
       return;
     }
@@ -117,7 +117,7 @@ export default function DocumentSubmissionPage() {
         </div>
         <div className="flex items-center gap-3">
           <span className="text-zinc-600 text-sm">
-            Welcome, {userType === "ca" ? "CA Firm" : "Applicant"}
+            DPR Workspace
           </span>
           <button
             onClick={() => {
@@ -127,7 +127,7 @@ export default function DocumentSubmissionPage() {
             }}
             className="text-primary text-sm font-medium underline"
           >
-            Sign Out
+            Home
           </button>
         </div>
       </header>
@@ -150,7 +150,7 @@ export default function DocumentSubmissionPage() {
             </div>
             <p className="text-sm text-zinc-600 mt-2">
               Compliance: <span className="font-semibold text-secondary">{compliancePercentage}%</span>{" "}
-              (minimum {MIN_COMPLIANCE}% required before CA review)
+              (minimum {MIN_COMPLIANCE}% required before submission)
             </p>
           </div>
 
@@ -201,7 +201,7 @@ export default function DocumentSubmissionPage() {
           {/* Actions */}
           <div className="flex gap-4">
             <button onClick={handleSubmit} className="btn-primary">
-              {userType === "applicant" ? "Proceed to Loan Repayment" : "Continue to CA Review Workflow"}
+              {userType === "applicant" ? "Proceed to Loan Repayment" : "Continue"}
             </button>
             <button onClick={() => router.push("/project-information")} className="btn-secondary">
               Back

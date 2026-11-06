@@ -116,7 +116,7 @@ export default function CashFlowPage() {
   ];
 
   const handleSubmit = () => {
-    // Cash flow is always available; applicants limited to screens 1-17, CA firms to all 18
+    // Cash flow is always available; All screens are available, all screens
     if (userType === 'applicant') {
       router.push("/break-even");
     } else {
@@ -139,7 +139,7 @@ export default function CashFlowPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-zinc-600 text-sm">Welcome, {userType === 'ca' ? 'CA Firm' : 'Applicant'}</span>
+          <span className="text-zinc-600 text-sm">DPR Workspace</span>
           <button
             onClick={() => {
               localStorage.removeItem("dpr_user_type");
@@ -148,7 +148,7 @@ export default function CashFlowPage() {
             }}
             className="text-primary text-sm font-medium underline"
           >
-            Sign Out
+            Home
           </button>
         </div>
       </header>

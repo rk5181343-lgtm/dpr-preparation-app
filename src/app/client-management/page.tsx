@@ -33,9 +33,9 @@ export default function ClientManagementPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-zinc-600 text-sm">Welcome, CA Firm</span>
+          <span className="text-zinc-600 text-sm">Welcome, DPR Workspace</span>
           <button onClick={() => router.push("/login")} className="text-primary text-sm font-medium underline">
-            Sign Out
+            Home
           </button>
         </div>
       </header>

@@ -1,18 +1,18 @@
 /* 
  * Final Reports - DPR Preparation Application
  * Screen 17: Final Reports
- * 18-screen workflow: Login → Dashboard → Client Mgmt → Project Creation → Project Information → Document Submission → Loan Repayment → Cash Flow → Break-Even → Balance Sheet → Implementation Schedule → Document Management → Risk Assessment → Conclusion & Confirmation → Final Reports → Settings
+ * 18-screen workflow: Login → Dashboard → Client Mgmt → Project Creation → Project Information → Document Submission → Loan Repayment → Cash Flow → Break-Even → Balance Sheet → Implementation Schedule → Document Management → Risk Assessment → Conclusion & Conorganisationation → Final Reports → Settings
  * 
- * Integrates with all prior modules for financial data, document compliance, risk assessment, and CA workflow status.
+ * Integrates with all prior modules for financial data, document compliance, risk assessment, and approval workflow status.
  * 
  * Per SRS Section 15 and Screen 17 Requirements:
  * - 7 report type checkboxes for different report categories
- * - Report customization (CA name, firm name, watermark, applicant logo)
+ * - Report customization (prepared by, organisation, watermark, applicant logo)
  * - Generate Reports button with sequential PDF generation
- * - All 7 report types with specific content per Report Generation requirements
+ * - All 6 report types with specific content per Report Generation requirements
  * - "All of the Above" option for comprehensive deliverance
  * - Report saved to Downloads folder with naming convention
- * - Previous navigation to Screen 16: CA Review and Approval
+ * - Previous navigation to Screen 16: Final Review and Approval
  * 
  * Report Types and Contents:
  * 1. DPR Summary Report: 1-page summary with key financials, applicant profile, project details, Year 1 financial summary, DSCR, cash available, document checklist, disclaimer
@@ -21,7 +21,7 @@
  * 4. Implementation Schedule Report: Project stages with timing, responsible persons, dependencies, critical path, Gantt chart or timeline view
  * 5. Document Checklist Report: All 12 required documents with upload status, verification notes, gaps identification, compliance score
  * 6. Break-Even & Sensitivity Analysis Report: Base case results, 3 scenario tables, graphs (revenue/DSCR/cash trends), key takeaways
- * 7. CA Review Letter: CA's certification, review scope, observations, approval/rejection statement, CA firm details, date, conditions/recommendations
+ * 7. Review Letter: certification, review scope, observations, approval/rejection statement, preparer details, date, conditions/recommendations
  */
 
 "use client";
@@ -48,7 +48,6 @@ export default function FinalReportsPage() {
     implementationSchedule: boolean;
     documentChecklist: boolean;
     breakEvenSensitivity: boolean;
-    careReviewLetter: boolean;
   }>({
     dprSummary: false,
     detailedProjection: false,
@@ -56,12 +55,11 @@ export default function FinalReportsPage() {
     implementationSchedule: false,
     documentChecklist: false,
     breakEvenSensitivity: false,
-    careReviewLetter: false,
   });
 
   // Customization state
   const [caName, setCaName] = useState<string>("");
-  const [firmName, setFirmName] = useState<string>("");
+  const [organisationName, setFirmName] = useState<string>("");
   const [includeApplicantName, setIncludeApplicantName] = useState<boolean>(false);
   const [confidentialWatermark, setConfidentialWatermark] = useState<boolean>(false);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -81,7 +79,6 @@ export default function FinalReportsPage() {
       | "implementationSchedule"
       | "documentChecklist"
       | "breakEvenSensitivity"
-      | "careReviewLetter"
   ) => {
     // In a real system, this would generate PDFs using a library like jsPDF or a server-side generator
     // For now, simulate generation and navigate or alert
@@ -92,7 +89,6 @@ export default function FinalReportsPage() {
       implementationSchedule: "Implementation_Schedule_Report",
       documentChecklist: "Document_Checklist_Report",
       breakEvenSensitivity: "BreakEven_Sensitivity_Analysis",
-      careReviewLetter: "CA_Review_Letter",
     }[reportType];
 
     const fullName = `${reportName}_${customReportName || "Kalicheti"}_${selectedDate.toLocaleDateString()}`;
@@ -110,7 +106,7 @@ export default function FinalReportsPage() {
     }
   };
 
-  // Generate all 7 reports ("All of the Above")
+  // Generate all 6 reports ("All of the Above")
   const generateAllReports = () => {
     if (!hasSelectedReports) {
       alert("Please select at least one report type to generate.");
@@ -181,7 +177,7 @@ export default function FinalReportsPage() {
     setSelectedDate(new Date());
   }, []);
 
-  // Applicants limited to screens 1-17, CA firms to all 18
+  // All screens are available
   const navigateBasedOnType = (targetScreen: string) => {
     if (userType === 'applicant') {
       router.push(targetScreen);
@@ -205,7 +201,7 @@ export default function FinalReportsPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-zinc-600 text-sm">Welcome, {userType === 'ca' ? 'CA Firm' : 'Applicant'}</span>
+          <span className="text-zinc-600 text-sm">DPR Workspace</span>
           <button
             onClick={() => {
               localStorage.removeItem("dpr_user_type");
@@ -214,7 +210,7 @@ export default function FinalReportsPage() {
             }}
             className="text-primary text-sm font-medium underline"
           >
-            Sign Out
+            Home
           </button>
         </div>
       </header>
@@ -224,7 +220,7 @@ export default function FinalReportsPage() {
           <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
             <h3 className="text-secondary font-medium mb-6">Select Report Type</h3>
             <p className="text-zinc-500 text-sm mb-4">
-              Choose one or more report types to generate. Select "All of the Above" to generate all 7 reports in sequence.
+              Choose one or more report types to generate. Select "All of the Above" to generate all 6 reports in sequence.
             </p>
             
             {/* DPR Summary Report */}
@@ -335,36 +331,18 @@ export default function FinalReportsPage() {
               </p>
             </div>
 
-            {/* CA Review Letter */}
-            <div className="mb-3">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={reportTypes.careReviewLetter}
-                  onChange={(e) => handleReportTypeChange(e, "careReviewLetter")}
-                  className="w-4 h-4 rounded border-primary cursor-pointer"
-                />
-                <span>
-                  CA Review Letter (CA's certification, observations, approval)
-                </span>
-              </label>
-              <p className="text-zinc-500 text-xs mt-1">
-                Contents: CA's certification statement, Review scope and assumptions verified, Observations and qualifications, Approval/rejection statement, CA firm details (name, address, CA name, membership number, firm registration/UDIN number), Date of review, Conditions or recommendations (if any)
-              </p>
-            </div>
-
             {/* "All of the Above" option */}
             <div className="mt-4 p-3 rounded-md bg-primary/10 border-primary">
               <p className="font-medium text-secondary mb-2">All of the Above</p>
               <p className="text-zinc-500 text-sm">
-                Selects all 7 report types for generation in one click. Generates all reports sequentially. May take 15-30 seconds depending on report complexity. All reports saved to Downloads folder with sequential naming.
+                Selects all 6 report types for generation in one click. Generates all reports sequentially. May take 15-30 seconds depending on report complexity. All reports saved to Downloads folder with sequential naming.
               </p>
               <button
                 onClick={generateAllReports}
                 disabled={!hasSelectedReports}
                 className={hasSelectedReports ? 'btn-primary' : 'btn-secondary opacity-50'}
               >
-                Generate All 7 Reports
+                Generate All 6 Reports
               </button>
               <p className="text-zinc-500 text-xs mt-2">
                 Estimated generation time: 5-15 seconds for single report, 15-30 seconds for "All of the Above"
@@ -378,22 +356,22 @@ export default function FinalReportsPage() {
             
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="block text-secondary font-medium mb-1">CA Name</label>
+                <label className="block text-secondary font-medium mb-1">Prepared By</label>
                 <input
                   type="text"
                   value={caName}
                   onChange={handleCaNameChange}
-                  placeholder="Chartered Accountant Name"
+                  placeholder="Prepared By"
                   className="w-full rounded border-primary px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               <div>
-                <label className="block text-secondary font-medium mb-1">Firm Name</label>
+                <label className="block text-secondary font-medium mb-1">Organisation Name</label>
                 <input
                   type="text"
-                  value={firmName}
+                  value={organisationName}
                   onChange={handleFirmNameChange}
-                  placeholder="Firm Name"
+                  placeholder="Organisation Name"
                   className="w-full rounded border-primary px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
@@ -418,7 +396,7 @@ export default function FinalReportsPage() {
                   className="w-4 h-4 rounded border-primary cursor-pointer"
                 />
                 <span className="ml-2">
-                  If selected, applicant name appears on report header; if also has logo file upload, firm logo appears
+                  If selected, applicant name appears on report header; if also has logo file upload, logo appears
                 </span>
               </div>
             </div>
@@ -461,7 +439,7 @@ export default function FinalReportsPage() {
                 onClick={generateAllReports}
                 className="btn-primary"
               >
-                Generate All 7 Reports
+                Generate All 6 Reports
               </button>
             )}
 

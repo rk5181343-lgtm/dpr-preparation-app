@@ -9,7 +9,7 @@
  * - 18-step progress bar showing workflow status
  * - Project cards for existing projects
  * - Quick access to all workflow stages
- * - User type-based visibility (CA vs Applicant)
+ * - User type-based visibility (Workspace)
  */
 
 "use client";
@@ -90,9 +90,9 @@ export default function DashboardPage() {
   }, []);
 
   const navigateTo = useCallback((screenNumber: number) => {
-    // Applicants cannot access screens beyond 17 (CA review workflow)
+    // Applicants cannot access screens beyond 17 (final review workflow)
     if (userType === 'applicant' && screenNumber > 17) {
-      console.warn("Applicant access denied: CA review workflow screens are not available");
+      console.warn("Applicant access denied: final review workflow screens are not available");
       return;
     }
     router.push(SCREEN_ROUTES[screenNumber] ?? "/dashboard");
@@ -128,7 +128,7 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-3">
           <span className="text-zinc-600 text-sm">
-            Welcome, {userType === 'ca' ? 'CA Firm' : 'Applicant'}
+            DPR Workspace
           </span>
           <button
             onClick={() => {
@@ -139,7 +139,7 @@ export default function DashboardPage() {
             }}
             className="text-primary text-sm font-medium underline"
           >
-            Sign Out
+            Home
           </button>
         </div>
       </header>
@@ -270,7 +270,7 @@ export default function DashboardPage() {
             <h3 className="text-secondary font-medium mb-4">Next Available Screen</h3>
             <p className="text-zinc-600">
               You are currently at screen {projects[0]?.screenReached || 0} of 18.
-              CA review workflow screens (18) are not available for applicants.
+              final review workflow screens (18) are not available for applicants.
             </p>
           </section>
         )}

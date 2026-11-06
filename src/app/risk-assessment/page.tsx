@@ -110,7 +110,7 @@ export default function RiskAssessmentPage() {
     ));
   };
 
-  // Remove risk (only for CA firms - but we'll keep it simple)
+  // Remove risk (for all users - but we'll keep it simple)
   const removeRisk = (riskId: number) => {
     setRisks(prev => prev.filter(risk => risk.id !== riskId));
   };
@@ -182,7 +182,7 @@ export default function RiskAssessmentPage() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-zinc-600 text-sm">Welcome, {userType === 'ca' ? 'CA Firm' : 'Applicant'}</span>
+          <span className="text-zinc-600 text-sm">DPR Workspace</span>
           <button
             onClick={() => {
               localStorage.removeItem("dpr_user_type");
@@ -191,7 +191,7 @@ export default function RiskAssessmentPage() {
             }}
             className="text-primary text-sm font-medium underline"
           >
-            Sign Out
+            Home
           </button>
         </div>
       </header>
@@ -293,11 +293,11 @@ export default function RiskAssessmentPage() {
               </tbody>
             </table>
 
-            {/* Add New Risk (CA firms only) */}
+            {/* Add New Risk (CA organisations only) */}
             {userType === 'ca' && (
               <div className="mt-4 p-3 rounded-md bg-primary/10 border-primary">
                 <h4 className="font-medium text-secondary mb-2">Add Custom Risk</h4>
-                <p className="text-sm text-zinc-500">Only available for CA firms.</p>
+                <p className="text-sm text-zinc-500">Add project-specific risks as they are identified.</p>
               </div>
             )}
 
@@ -325,7 +325,7 @@ export default function RiskAssessmentPage() {
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <h3 className="text-secondary font-medium mb-4">Risk Summary Report</h3>
             <p className="text-zinc-500 text-sm mb-4">
-              Generated risk assessment report with prioritized actions for CA review.
+              Generated risk assessment report with prioritized actions.
             </p>
             
             <div className="grid grid-cols-2 gap-3 mb-4">
