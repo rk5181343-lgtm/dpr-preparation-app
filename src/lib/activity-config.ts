@@ -74,7 +74,7 @@ const CONFIGS: Record<string, ActivityConfig> = {
     revenueBasis: "Billable machine hours × rental rate per hour",
     sections: SECTIONS,
     documents: [
-      doc("Machine Quotation", true, 10),
+      doc("Machine Quotation", false, 10),
       doc("Insurance Proposal", true, 5),
       doc("Operator Credentials", true, 5),
       doc("Business Premises Consent", true, 10, ["pdf", "jpg"]),
@@ -118,7 +118,7 @@ const CONFIGS: Record<string, ActivityConfig> = {
     revenueBasis: "Saleable rice quantity × selling price",
     sections: SECTIONS,
     documents: [
-      doc("Machinery Quotations", true, 10),
+      doc("Machinery Quotations", false, 10),
       doc("Land and Building Documents", true, 10, ["pdf", "jpg"]),
       doc("Civil Construction Estimate", false, 10, ["pdf"]),
       doc("Electricity Connection Approval", true, 5, ["pdf"]),
@@ -161,7 +161,7 @@ const CONFIGS: Record<string, ActivityConfig> = {
     revenueBasis: "Saleable milk quantity × milk selling price",
     sections: SECTIONS,
     documents: [
-      doc("Animal Purchase Quotations", true, 10, ["pdf", "jpg"]),
+      doc("Animal Purchase Quotations", false, 10, ["pdf", "jpg"]),
       doc("Land and Shed Documents", true, 10, ["pdf", "jpg"]),
       doc("Veterinary Tie-up Letter", false, 5, ["pdf"]),
       doc("Milk Buyer Agreement", false, 5, ["pdf"]),
@@ -200,7 +200,7 @@ const CONFIGS: Record<string, ActivityConfig> = {
     sections: SECTIONS,
     documents: [
       doc("Building Plan Approval", true, 10, ["pdf"]),
-      doc("Furniture and Fixture Quotations", true, 10, ["pdf"]),
+      doc("Furniture and Fixture Quotations", false, 10, ["pdf"]),
       doc("Fire Safety Clearance", true, 5, ["pdf"]),
       doc("Tourism / Trade Licence", false, 5, ["pdf"]),
       ...KYC_DOCUMENTS,
@@ -237,7 +237,7 @@ const CONFIGS: Record<string, ActivityConfig> = {
     revenueBasis: "Sales quantity × selling price",
     sections: SECTIONS,
     documents: [
-      doc("Supplier Quotations", true, 10, ["pdf"]),
+      doc("Supplier Quotations", false, 10, ["pdf"]),
       doc("Purchase Agreements", false, 10, ["pdf"]),
       doc("Godown / Warehouse Proof", true, 10, ["pdf", "jpg"]),
       ...KYC_DOCUMENTS,
@@ -275,11 +275,11 @@ function buildDefaultConfig(activityId: string, activityName: string): ActivityC
     revenueBasis: "Billable capacity × unit price",
     sections: SECTIONS,
     documents: [
-      doc("Machinery / Equipment Quotations", true, 10, ["pdf"]),
+      doc("Machinery / Equipment Quotations", false, 10, ["pdf"]),
       doc("Land or Premises Documents", false, 10, ["pdf", "jpg"]),
       ...KYC_DOCUMENTS,
       ...REGISTRATION_DOCUMENTS,
-      doc("Project Cost Estimate", true, 10, ["pdf", "xlsx"]),
+      doc("Project Cost Estimate", false, 10, ["pdf", "xlsx"]),
       doc("Market Study", false, 10, ["pdf"]),
     ],
     technicalSections: [
