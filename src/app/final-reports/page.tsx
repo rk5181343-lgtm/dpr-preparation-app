@@ -216,6 +216,43 @@ export default function FinalReportsPage() {
       </header>
       <main className="p-6">
         <div className="max-w-2xl mx-auto">
+          {/* Downloadable sample DPR */}
+          <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
+            <h3 className="text-secondary font-medium mb-2">Sample DPR — download a completed example</h3>
+            <p className="text-zinc-500 text-sm mb-4">
+              A finished earthmoving equipment rental DPR you can open right away: project cost, means of finance,
+              five year projections, cash flow, balance sheet, break-even, schedule and document checklist.
+              The Word file is editable and the Excel file holds the financial model.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <a
+                href="/samples/sample-dpr-earthmoving.pdf"
+                download
+                className="btn-primary text-center"
+              >
+                Download PDF
+              </a>
+              <a
+                href="/samples/sample-dpr-earthmoving.docx"
+                download
+                className="btn-secondary text-center"
+              >
+                Download Word
+              </a>
+              <a
+                href="/samples/sample-dpr-earthmoving.xlsx"
+                download
+                className="btn-secondary text-center"
+              >
+                Download Excel
+              </a>
+            </div>
+            <p className="text-zinc-500 text-xs mt-3">
+              Example figures only, no personal identity details. Replace names and numbers with your own before
+              sending anything to a bank.
+            </p>
+          </div>
+
           {/* Report Type Selection */}
           <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
             <h3 className="text-secondary font-medium mb-6">Select Report Type</h3>

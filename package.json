@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sample:dpr": "node scripts/generate-sample-dpr.mjs"
   },
   "dependencies": {
     "next": "16.4.5",

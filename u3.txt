@@ -1,0 +1,7 @@
+/_next/static/immutable/chunks/0c0hxoamwjsbw.js
+/_next/static/immutable/chunks/1fa8r0dou798y.js
+/_next/static/immutable/chunks/1yh-53pzj1c7b.js
+/_next/static/immutable/chunks/26pxod7kdk6tu.js
+/_next/static/immutable/chunks/2q4a-x8_el81d.js
+/_next/static/immutable/chunks/42085g0wrka5d.js
+/_next/static/immutable/chunks/turbopack-3xd-7z66s-4wg.js
