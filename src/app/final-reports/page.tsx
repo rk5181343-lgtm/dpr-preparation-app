@@ -19,7 +19,7 @@
  * 2. Detailed 5-Year Projection Report: Full P&L, Cash Flow, Balance Sheet for 5 years with 11 metrics across Years 1-5
  * 3. Loan Appraisal Report: Loan terms, amortization schedule, DSCR analysis, cash flow adequacy, margin analysis, risk factors, lender recommendations
  * 4. Implementation Schedule Report: Project stages with timing, responsible persons, dependencies, critical path, Gantt chart or timeline view
- * 5. Document Checklist Report: All 12 required documents with upload status, verification notes, gaps identification, compliance score
+ * 5. Document Checklist Report: All mandatory documents with upload status, verification notes, gaps identification, compliance score
  * 6. Break-Even & Sensitivity Analysis Report: Base case results, 3 scenario tables, graphs (revenue/DSCR/cash trends), key takeaways
  * 7. Review Letter: certification, review scope, observations, approval/rejection statement, preparer details, date, conditions/recommendations
  */
@@ -309,7 +309,7 @@ export default function FinalReportsPage() {
                 </span>
               </label>
               <p className="text-zinc-500 text-xs mt-1">
-                Contents: List of all 12 required documents for MUDRA/Tarun category, upload status for each (Uploaded/Pending/Verified/Rejected), verification notes, gaps identification (missing documents), compliance score (% of 12 documents verified)
+                Contents: List of all mandatory documents for MUDRA/Tarun category, upload status for each (Uploaded/Pending/Verified/Rejected), verification notes, gaps identification (missing documents), compliance score (% of mandatory documents verified)
               </p>
             </div>
 
