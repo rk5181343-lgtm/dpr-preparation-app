@@ -87,16 +87,19 @@ export default function ProjectInformationPage() {
   return (
     <div className="min-h-screen bg-zinc-50">
       <header className="bg-white border-b border-zinc-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="w-10 h-10 rounded-md bg-primary flex items-center justify-center shrink-0">
             <span className="text-white text-xs font-bold">DPR</span>
           </div>
-          <div>
-            <h2 className="font-semibold text-secondary text-lg">{project.name}</h2>
-            <p className="text-zinc-500 text-sm">{project.activityName}</p>
+          <div className="min-w-0">
+            <h2 className="font-semibold text-secondary text-lg truncate">{project.name}</h2>
+            <p className="text-zinc-500 text-sm truncate">{project.activityName}</p>
           </div>
         </div>
-        <button onClick={() => router.push("/dashboard")} className="text-primary text-sm font-medium underline">
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="text-primary text-sm font-medium underline whitespace-nowrap shrink-0"
+        >
           My projects
         </button>
       </header>
