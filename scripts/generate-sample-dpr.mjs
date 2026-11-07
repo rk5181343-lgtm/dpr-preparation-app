@@ -369,7 +369,7 @@ class PdfDoc {
       drawText(this.ops, MARGIN, this.y, note, { size: 8, color: C.muted });
       this.y -= 12;
     }
-    this.y -= 6;
+    this.y -= 13;
   }
 
   finish() {
