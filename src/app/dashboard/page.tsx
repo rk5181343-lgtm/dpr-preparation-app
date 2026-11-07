@@ -7,6 +7,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { loadProjects } from "@/lib/project-store";
 
 type ProjectStatus = "not_started" | "in_progress" | "completed";
 
@@ -77,10 +78,23 @@ const INITIAL_PROJECTS: ProjectCard[] = [
 ];
 
 export default function DashboardPage() {
-  const [projects] = useState<ProjectCard[]>(INITIAL_PROJECTS);
+  const [projects, setProjects] = useState<ProjectCard[]>(INITIAL_PROJECTS);
   const router = useRouter();
 
   useEffect(() => {
+    const stored = loadProjects();
+    if (stored.length > 0) {
+      setProjects(
+        stored.map((project) => ({
+          id: project.id,
+          name: project.name,
+          clientName: project.clientName || "Client not set",
+          status: (project.status === "draft" ? "not_started" : project.status) as ProjectStatus,
+          progress: project.progress,
+          screenReached: 0,
+        }))
+      );
+    }
     localStorage.setItem("dpr_user_type", "ca");
     if (!localStorage.getItem("dpr_user_id")) {
       localStorage.setItem("dpr_user_id", "local");

@@ -115,7 +115,7 @@ export default function BreakEvenPage() {
             onClick={() => {
               localStorage.removeItem("dpr_user_type");
               localStorage.removeItem("dpr_user_id");
-              router.push("/login");
+              router.push("/dashboard");
             }}
             className="text-primary text-sm font-medium underline"
           >
