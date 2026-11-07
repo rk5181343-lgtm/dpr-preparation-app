@@ -305,10 +305,30 @@ function buildDefaultConfig(activityId: string, activityName: string): ActivityC
   };
 }
 
+/*
+ * Only these identity and bank records block the checklist. Every other
+ * document is collected when the promoter has it, but never a gate.
+ */
+export const MANDATORY_DOCUMENTS = ["PAN Card", "Aadhaar Card", "Address Proof", "Bank Statements"];
+
+function enforceMandatoryDocuments(documents: RequiredDocument[]): RequiredDocument[] {
+  const enforced = documents.map((document) => ({
+    ...document,
+    required: MANDATORY_DOCUMENTS.includes(document.name),
+  }));
+
+  for (const name of MANDATORY_DOCUMENTS) {
+    if (enforced.some((document) => document.name === name)) continue;
+    const definition = KYC_DOCUMENTS.find((document) => document.name === name) ?? doc(name);
+    enforced.push({ ...definition, required: true });
+  }
+
+  return enforced;
+}
+
 export function getActivityConfig(activityId: string, activityName?: string): ActivityConfig {
-  const existing = CONFIGS[activityId];
-  if (existing) return existing;
-  return buildDefaultConfig(activityId, activityName ?? "Custom Activity");
+  const config = CONFIGS[activityId] ?? buildDefaultConfig(activityId, activityName ?? "Custom Activity");
+  return { ...config, documents: enforceMandatoryDocuments(config.documents) };
 }
 
 export function listConfiguredActivities(): string[] {

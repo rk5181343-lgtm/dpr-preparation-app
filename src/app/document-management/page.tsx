@@ -38,28 +38,30 @@ export default function DocumentManagementPage() {
     }
   }, []);
 
-  // 12 mandatory document categories for MUDRA submission (from SRS Screen 13)
-  // Note: Module 7 had 13 categories; this screen has 12 mandatory + some optional
+  // Identity and bank records are the only mandatory categories. Everything else
+  // is collected when the promoter has it, so no other upload can block submission.
   const documentCategories = [
     { id: 1, name: "PAN Card", mandatory: true, uploaded: false, acceptedTypes: ["pdf", "jpg", "png"], maxSize: 5 }, // MB
     { id: 2, name: "Aadhaar Card", mandatory: true, uploaded: false, acceptedTypes: ["pdf", "jpg", "png"], maxSize: 5 }, // MB
     { id: 3, name: "Address Proof", mandatory: true, uploaded: false, acceptedTypes: ["pdf", "jpg"], maxSize: 10 }, // MB
     { id: 4, name: "Bank Statements", mandatory: true, uploaded: false, acceptedTypes: ["pdf", "jpg"], maxSize: 10 }, // MB (last 6 months)
-    { id: 5, name: "Machine Quotation", mandatory: true, uploaded: false, acceptedTypes: ["pdf", "jpg"], maxSize: 10 }, // MB (must include model, year, serial, condition)
-    { id: 6, name: "Insurance Proposal", mandatory: true, uploaded: false, acceptedTypes: ["pdf"], maxSize: 5 }, // MB
-    { id: 7, name: "Operator Credentials", mandatory: true, uploaded: false, acceptedTypes: ["pdf", "jpg"], maxSize: 5 }, // MB
-    { id: 8, name: "Business Premises Consent", mandatory: true, uploaded: false, acceptedTypes: ["pdf", "jpg"], maxSize: 10 }, // MB (lease/ownership deed)
-    { id: 9, name: "PAN and Aadhaar KYC", mandatory: true, uploaded: false, acceptedTypes: ["pdf", "jpg"], maxSize: 5 }, // MB
-    { id: 10, name: "Registration Permissions", mandatory: true, uploaded: false, acceptedTypes: ["pdf"], maxSize: 5 }, // MB (trade licenses)
+    { id: 5, name: "Machine Quotation", mandatory: false, uploaded: false, acceptedTypes: ["pdf", "jpg"], maxSize: 10 }, // MB (must include model, year, serial, condition)
+    { id: 6, name: "Insurance Proposal", mandatory: false, uploaded: false, acceptedTypes: ["pdf"], maxSize: 5 }, // MB
+    { id: 7, name: "Operator Credentials", mandatory: false, uploaded: false, acceptedTypes: ["pdf", "jpg"], maxSize: 5 }, // MB
+    { id: 8, name: "Business Premises Consent", mandatory: false, uploaded: false, acceptedTypes: ["pdf", "jpg"], maxSize: 10 }, // MB (lease/ownership deed)
+    { id: 9, name: "PAN and Aadhaar KYC", mandatory: false, uploaded: false, acceptedTypes: ["pdf", "jpg"], maxSize: 5 }, // MB
+    { id: 10, name: "Registration Permissions", mandatory: false, uploaded: false, acceptedTypes: ["pdf"], maxSize: 5 }, // MB (trade licenses)
     { id: 11, name: "Customer Enquiries/LOI", mandatory: false, uploaded: false, acceptedTypes: ["pdf"], maxSize: 10 }, // MB (optional)
     { id: 12, name: "Valuation Report", mandatory: false, uploaded: false, acceptedTypes: ["pdf"], maxSize: 10 }, // MB (optional)
   ];
+
+  const mandatoryCategoryCount = documentCategories.filter((category) => category.mandatory).length;
 
   // Track upload status for each category
   const [uploadProgress, setUploadProgress] = useState<'idle' | 'uploading' | 'verified' | 'rejected'>('idle');
   const [compliancePercentage, setCompliancePercentage] = useState(0);
   const [uploadedCount, setUploadedCount] = useState(0);
-  const [totalRequired, setTotalRequired] = useState(12); // 12 mandatory categories
+  const [totalRequired] = useState(mandatoryCategoryCount); // identity and bank records only
 
   // Calculate compliance percentage
   const calculateCompliance = (): number => {
