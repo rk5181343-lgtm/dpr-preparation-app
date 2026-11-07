@@ -217,41 +217,44 @@ export default function FinalReportsPage() {
       <main className="p-6">
         <div className="max-w-2xl mx-auto">
           {/* Downloadable sample DPR */}
-          <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
-            <h3 className="text-secondary font-medium mb-2">Sample DPR — download a completed example</h3>
-            <p className="text-zinc-500 text-sm mb-4">
-              A finished earthmoving equipment rental DPR you can open right away: project cost, means of finance,
-              five year projections, cash flow, balance sheet, break-even, schedule and document checklist.
-              The Word file is editable and the Excel file holds the financial model.
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <a
-                href="/samples/sample-dpr-earthmoving.pdf"
-                download
-                className="btn-primary text-center"
-              >
-                Download PDF
-              </a>
-              <a
-                href="/samples/sample-dpr-earthmoving.docx"
-                download
-                className="btn-secondary text-center"
-              >
-                Download Word
-              </a>
-              <a
-                href="/samples/sample-dpr-earthmoving.xlsx"
-                download
-                className="btn-secondary text-center"
-              >
-                Download Excel
-              </a>
+          <section className="bg-white rounded-lg shadow-sm mb-8 overflow-hidden border border-zinc-200">
+            <div className="bg-primary px-6 py-5">
+              <p className="text-white/60 text-xs font-semibold uppercase tracking-[0.18em] mb-2">
+                Ready-made example
+              </p>
+              <h3 className="text-white text-lg font-semibold">Download a completed DPR</h3>
+              <p className="text-white/80 text-sm mt-1 leading-relaxed">
+                A finished earthmoving equipment rental report: cost of the project, means of finance, five year
+                projections, cash flow, balance sheet, break-even, schedule and document checklist.
+              </p>
             </div>
-            <p className="text-zinc-500 text-xs mt-3">
-              Example figures only, no personal identity details. Replace names and numbers with your own before
-              sending anything to a bank.
-            </p>
-          </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {[
+                  { href: "/samples/sample-dpr-earthmoving.pdf", label: "PDF", meta: "8 pages, print ready" },
+                  { href: "/samples/sample-dpr-earthmoving.docx", label: "Word", meta: "Editable text" },
+                  { href: "/samples/sample-dpr-earthmoving.xlsx", label: "Excel", meta: "Financial model" },
+                ].map((file) => (
+                  <a
+                    key={file.href}
+                    href={file.href}
+                    download
+                    className="group rounded-md border border-zinc-200 px-4 py-4 hover:border-primary hover:bg-primary/5 transition-colors"
+                  >
+                    <span className="block text-secondary font-semibold group-hover:text-primary">
+                      {file.label}
+                    </span>
+                    <span className="block text-zinc-500 text-xs mt-1">{file.meta}</span>
+                    <span className="inline-block mt-3 text-sm font-medium text-primary underline">Download</span>
+                  </a>
+                ))}
+              </div>
+              <p className="text-zinc-500 text-xs mt-4">
+                Example figures only, no personal identity details. Replace names and numbers with your own before
+                sending anything to a bank.
+              </p>
+            </div>
+          </section>
 
           {/* Report Type Selection */}
           <div className="bg-white rounded-lg p-6 shadow-sm mb-8">

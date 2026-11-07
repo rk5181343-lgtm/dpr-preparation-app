@@ -156,13 +156,13 @@ const PROJECT = {
     { name: "Backhoe loader (JCB type), 3CX class", qty: 1, unit: 3.0, total: 3.0 },
   ],
   documents: [
-    { name: "PAN Card", status: "Received", note: "Verified against application form" },
-    { name: "Aadhaar Card", status: "Received", note: "Address matches electricity bill" },
-    { name: "Address Proof", status: "Received", note: "Rental agreement, 11 months" },
-    { name: "Bank Statements", status: "Received", note: "Last 6 months, current account" },
-    { name: "Machine Quotation", status: "Optional", note: "Available, supports machinery cost" },
-    { name: "Insurance Proposal", status: "Optional", note: "To be purchased on disbursement" },
-    { name: "Registration Permissions", status: "Optional", note: "Applied after purchase" },
+    { name: "PAN Card", purpose: "Identity and tax", status: "Submitted", note: "Self attested copy" },
+    { name: "Aadhaar Card", purpose: "Identity and address", status: "Submitted", note: "Address matches electricity bill" },
+    { name: "Address Proof", purpose: "Business premises", status: "Submitted", note: "Rental agreement, 11 months" },
+    { name: "Bank Statements", purpose: "Repayment track", status: "Submitted", note: "Last 6 months, current account" },
+    { name: "Machine Quotation", purpose: "Cost of machinery", status: "Submitted", note: "Dealer quotation, three machines" },
+    { name: "Insurance Proposal", purpose: "Asset protection", status: "To be submitted", note: "Policy issued on disbursement" },
+    { name: "Registration Permissions", purpose: "Statutory clearance", status: "To be submitted", note: "Applied after purchase" },
   ],
   schedule: [
     { stage: "Quotation and equipment inspection", timing: "Weeks 1-2", owner: "Promoter" },
@@ -234,9 +234,41 @@ const drawLine = (ops, x1, y1, x2, y2, width, color) => {
   );
 };
 
-/* Helvetica approximation: wide enough that nothing spills past a cell. */
-const charWidth = (size, bold) => size * (bold ? 0.555 : 0.508);
-const textWidth = (value, size, bold) => winAnsi(value).length * charWidth(size, bold);
+/* Real Helvetica metrics for characters 32-126, so measured text matches what
+   the viewer draws and nothing crosses a cell edge. */
+const HELVETICA = [
+  278, 278, 355, 556, 556, 889, 667, 191, 333, 333, 389, 584, 278, 333, 278, 278,
+  556, 556, 556, 556, 556, 556, 556, 556, 556, 556,
+  278, 278, 584, 584, 584, 556, 1015,
+  667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778, 667,
+  778, 722, 667, 611, 722, 667, 944, 667, 667, 611,
+  278, 278, 278, 469, 556, 333,
+  556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833, 556, 556, 556,
+  556, 333, 500, 278, 556, 500, 722, 500, 500, 500,
+  334, 260, 334, 584,
+];
+
+const HELVETICA_BOLD = [
+  278, 333, 474, 556, 556, 889, 722, 238, 333, 333, 389, 584, 278, 333, 278, 278,
+  556, 556, 556, 556, 556, 556, 556, 556, 556, 556,
+  333, 333, 584, 584, 584, 611, 975,
+  722, 722, 722, 722, 667, 611, 778, 722, 278, 556, 722, 611, 833, 722, 778, 667,
+  778, 722, 667, 611, 722, 667, 944, 667, 667, 611,
+  333, 278, 333, 584, 556, 333,
+  556, 611, 556, 611, 556, 333, 611, 611, 278, 278, 556, 278, 889, 611, 611, 611,
+  611, 389, 556, 333, 611, 556, 778, 556, 556, 500,
+  389, 280, 389, 584,
+];
+
+const glyphWidth = (char, bold) => {
+  const code = char.charCodeAt(0);
+  if (code >= 32 && code <= 126) return (bold ? HELVETICA_BOLD : HELVETICA)[code - 32];
+  if (code === 0x95) return 350;
+  return bold ? 611 : 556;
+};
+
+const textWidth = (value, size, bold = false) =>
+  [...winAnsi(value)].reduce((sum, char) => sum + glyphWidth(char, bold), 0) * (size / 1000);
 
 const wrapText = (value, maxWidth, size, bold = false) => {
   const words = winAnsi(value).split(/\s+/).filter(Boolean);
@@ -280,12 +312,12 @@ class PdfDoc {
   }
 
   heading(label) {
-    this.ensure(52);
-    this.y -= 10;
+    this.ensure(96);
+    this.y -= 16;
     drawText(this.ops, MARGIN, this.y, label, { size: 12.5, bold: true, color: C.primary });
     this.y -= 7;
     drawLine(this.ops, MARGIN, this.y, P_W - MARGIN, this.y, 0.9, C.accent);
-    this.y -= 15;
+    this.y -= 16;
   }
 
   subheading(label) {
@@ -295,9 +327,9 @@ class PdfDoc {
     this.y -= 15;
   }
 
-  paragraph(value, { size = 9.6, gap = 7, color = C.secondary } = {}) {
+  paragraph(value, { size = 9.6, gap = 8, color = C.secondary } = {}) {
     const lines = wrapText(value, CONTENT_W, size);
-    const lineHeight = size + 3.6;
+    const lineHeight = size + 4.4;
     this.ensure(lines.length * lineHeight + 6);
     for (const line of lines) {
       drawText(this.ops, MARGIN, this.y, line, { size, color });
@@ -320,24 +352,24 @@ class PdfDoc {
     this.y -= 4;
   }
 
-  table({ widths, header, rows, fontSize = 8.8, aligns = [], boldRows = [], note }) {
+  table({ widths, header, rows, fontSize = 8.8, aligns = [], boldRows = [], rules = true, zebra = true, note }) {
     const totalWidth = widths.reduce((sum, width) => sum + width, 0);
     const scale = totalWidth > CONTENT_W ? CONTENT_W / totalWidth : 1;
     const cols = widths.map((width) => width * scale);
-    const padding = 5;
+    const padding = 6;
 
     const layoutRow = (cells, bold) =>
       cells.map((cell, index) => wrapText(String(cell), cols[index] - padding * 2, fontSize, bold));
 
     const drawRow = (cells, { bold = false, fill = null, color = C.secondary } = {}) => {
       const lines = layoutRow(cells, bold);
-      const lineHeight = fontSize + 2.9;
-      const height = Math.max(...lines.map((cell) => cell.length)) * lineHeight + 7;
+      const lineHeight = fontSize + 3.3;
+      const height = Math.max(...lines.map((cell) => cell.length)) * lineHeight + 8;
       this.ensure(height + 2);
       if (fill) drawRect(this.ops, MARGIN, this.y - height, CONTENT_W, height, fill);
       let x = MARGIN;
       lines.forEach((cellLines, index) => {
-        const align = aligns[index] ?? (index === 0 ? "left" : "right");
+        const align = aligns[index] ?? "left";
         const cellX = align === "right" ? x + cols[index] - padding : x + padding;
         cellLines.forEach((line, lineIndex) => {
           drawText(this.ops, cellX, this.y - 11 - lineIndex * lineHeight, line, {
@@ -350,7 +382,7 @@ class PdfDoc {
         x += cols[index];
       });
       this.y -= height;
-      drawLine(this.ops, MARGIN, this.y, P_W - MARGIN, this.y, 0.4, C.rule);
+      if (rules) drawLine(this.ops, MARGIN, this.y, P_W - MARGIN, this.y, 0.4, C.rule);
     };
 
     const drawHeader = () => {
@@ -360,7 +392,7 @@ class PdfDoc {
     drawHeader();
     rows.forEach((row, index) => {
       const before = this.pages.length;
-      drawRow(row, { bold: boldRows.includes(index), fill: index % 2 === 1 ? C.band : null });
+      drawRow(row, { bold: boldRows.includes(index), fill: zebra && index % 2 === 1 ? C.band : null });
       if (this.pages.length !== before) drawHeader();
     });
 
@@ -375,7 +407,7 @@ class PdfDoc {
   finish() {
     this.pages.forEach((ops, index) => {
       drawLine(ops, MARGIN, 56, P_W - MARGIN, 56, 0.6, C.rule);
-      drawText(ops, MARGIN, 44, "DPR Preparation System - sample document, illustrative figures", { size: 7.5, color: C.muted });
+      drawText(ops, MARGIN, 44, "Detailed Project Report - Earthmoving Equipment Rental", { size: 7.5, color: C.muted });
       drawText(ops, P_W - MARGIN, 44, `Page ${index + 1} of ${this.pages.length}`, { size: 7.5, color: C.muted, align: "right" });
     });
 
@@ -436,40 +468,46 @@ const buildSamplePdf = () => {
   const doc = new PdfDoc("Detailed Project Report - Earthmoving Equipment Rental");
 
   /* Cover */
-  drawRect(doc.ops, 0, P_H - 250, P_W, 250, C.primary);
-  drawText(doc.ops, MARGIN, P_H - 120, "DETAILED PROJECT REPORT", { size: 24, bold: true, color: C.white });
-  drawText(doc.ops, MARGIN, P_H - 148, PROJECT.title, { size: 15, color: C.white });
-  drawText(doc.ops, MARGIN, P_H - 172, PROJECT.subtitle, { size: 10, color: [0.85, 0.88, 0.92] });
-  drawRect(doc.ops, MARGIN, P_H - 190, 120, 3, C.accent);
-  drawText(doc.ops, MARGIN, P_H - 222, "Term loan application for bank appraisal", { size: 10.5, color: C.white });
+  drawRect(doc.ops, 0, P_H - 232, P_W, 232, C.primary);
+  drawRect(doc.ops, 0, P_H - 237, P_W, 5, C.accent);
+  drawText(doc.ops, MARGIN, P_H - 104, "DETAILED PROJECT REPORT", { size: 10.5, bold: true, color: C.accent });
+  drawText(doc.ops, MARGIN, P_H - 138, PROJECT.title, { size: 23, bold: true, color: C.white });
+  drawText(doc.ops, MARGIN, P_H - 162, PROJECT.subtitle, { size: 10.5, color: [0.84, 0.87, 0.91] });
+  drawText(doc.ops, MARGIN, P_H - 198, "Term loan proposal for bank appraisal", { size: 10, color: C.white });
 
-  doc.y = P_H - 300;
+  doc.y = P_H - 286;
   doc.table({
-    widths: [190, 300],
+    widths: [165, 315],
     rows: [
       ["Promoter", PROJECT.promoter],
-      ["Project location", PROJECT.location],
-      ["Activity", PROJECT.activity],
+      ["Business name", "Sri Ramesh Earthmovers"],
+      ["Location", PROJECT.location],
+      ["Activity", "Hiring out earthmoving machines with operators"],
       ["Project cost", `Rs. ${lakh(PROJECT.totalCost)} lakh`],
-      ["Term loan applied", `Rs. ${lakh(PROJECT.loan)} lakh`],
-      ["Promoter contribution", `Rs. ${lakh(PROJECT.promoterContribution)} lakh (33%)`],
-      ["Repayment", `${ASSUMPTIONS.tenureMonths} months at ${ASSUMPTIONS.interestRate}% p.a., EMI Rs. ${rs(EMI)}`],
+      ["Term loan applied", `Rs. ${lakh(PROJECT.loan)} lakh for ${ASSUMPTIONS.tenureMonths} months`],
+      ["Promoter contribution", `Rs. ${lakh(PROJECT.promoterContribution)} lakh, 33% of project cost`],
+      ["Monthly instalment", `Rs. ${rs(EMI)} at ${ASSUMPTIONS.interestRate}% per annum`],
     ],
   });
 
-  doc.subheading("What this document is");
-  doc.paragraph(
-    "This is a completed example of the report the application prepares. Every section a bank expects in a term loan proposal is filled in with consistent figures: cost of the project, means of finance, five year profitability, cash flow, balance sheet, repayment capacity, break even point, implementation plan and the document checklist."
-  );
-  doc.paragraph(
-    "The example project is a three machine earthmoving rental business financed with a Rs. 10.00 lakh term loan and Rs. 5.00 lakh of promoter money. Replace the names, locations and figures with your own before submitting anything to a lender."
-  );
+  doc.subheading("Contents");
+  doc.table({
+    widths: [250, 250],
+    rules: false,
+    zebra: false,
+    rows: [
+      ["1. Project at a glance", "9. Five year profitability"],
+      ["2. Executive summary", "10. Cash flow statement"],
+      ["3. Promoter and project profile", "11. Projected balance sheet"],
+      ["4. Market and demand", "12. Break even analysis"],
+      ["5. Machinery and technical details", "13. Implementation schedule"],
+      ["6. Cost of the project", "14. Risk assessment"],
+      ["7. Means of finance", "15. Document checklist"],
+      ["8. Loan terms and repayment", "16. Conclusion"],
+    ],
+  });
 
-  doc.y -= 6;
-  drawRect(doc.ops, MARGIN, doc.y - 62, CONTENT_W, 62, C.band);
-  drawText(doc.ops, MARGIN + 14, doc.y - 22, "Sample document", { size: 10, bold: true, color: C.primary });
-  drawText(doc.ops, MARGIN + 14, doc.y - 38, "Figures are illustrative and internally consistent, not a real sanction or appraisal.", { size: 8.6, color: C.muted });
-  drawText(doc.ops, MARGIN + 14, doc.y - 52, "Prepared by DPR Preparation System. No personal identity details are included.", { size: 8.6, color: C.muted });
+  doc.paragraph("Illustrative example with internally consistent figures.", { size: 8.2, color: C.muted, gap: 0 });
 
   /* Page 2 */
   doc.newPage();
@@ -500,7 +538,7 @@ const buildSamplePdf = () => {
     `Net profit after tax and reserve of Rs. ${lakh(pat[0])} lakh in year 1, rising to Rs. ${lakh(pat[4])} lakh in year 5.`,
     `Debt service coverage of ${dscr[0].toFixed(2)}x in year 1 and never below ${Math.min(...dscr).toFixed(2)}x, against the 1.50x a lender normally asks for.`,
     `The loan closes exactly at zero in the sixtieth month, cash balance grows every year and the balance sheet balances in all five years.`,
-    "Only identity and bank records are mandatory in the checklist; quotations and other paperwork are collected when available.",
+    "Three operators and one part time mechanic are employed, and machines are placed on site contracts of three to six months rather than spot hire alone.",
   ]);
 
   /* Page 3 */
@@ -536,6 +574,7 @@ const buildSamplePdf = () => {
   doc.table({
     widths: [250, 60, 80, 90],
     header: ["Machine", "Qty", "Unit cost (Rs. lakh)", "Total (Rs. lakh)"],
+    aligns: ["left", "right", "right", "right"],
     rows: [
       ...PROJECT.machines.map((machine) => [machine.name, String(machine.qty), lakh(machine.unit), lakh(machine.total)]),
       ["Sub total machinery", "", "", lakh(PROJECT.machinery)],
@@ -571,6 +610,7 @@ const buildSamplePdf = () => {
   doc.table({
     widths: [300, 100, 100],
     header: ["Particulars", "Rs. lakh", "% of cost"],
+    aligns: ["left", "right", "right"],
     rows: [
       ["Machinery", lakh(PROJECT.machinery), `${((PROJECT.machinery / PROJECT.totalCost) * 100).toFixed(0)}%`],
       ["Refurbishment, transport and registration", lakh(PROJECT.refurbishment), `${((PROJECT.refurbishment / PROJECT.totalCost) * 100).toFixed(0)}%`],
@@ -584,6 +624,7 @@ const buildSamplePdf = () => {
   doc.table({
     widths: [300, 100, 100],
     header: ["Particulars", "Rs. lakh", "% of cost"],
+    aligns: ["left", "right", "right"],
     rows: [
       ["Term loan from bank", lakh(PROJECT.loan), `${((PROJECT.loan / PROJECT.totalCost) * 100).toFixed(0)}%`],
       ["Promoter contribution", lakh(PROJECT.promoterContribution), `${((PROJECT.promoterContribution / PROJECT.totalCost) * 100).toFixed(0)}%`],
@@ -612,6 +653,7 @@ const buildSamplePdf = () => {
   doc.table({
     widths: [190, 65, 65, 65, 65, 65],
     header: ["Rs. lakh", "Year 1", "Year 2", "Year 3", "Year 4", "Year 5"],
+    aligns: ["left", "right", "right", "right", "right", "right"],
     rows: [
       ["Rental income", ...rental.map(lakh)],
       ["Operating expenses", ...operatingExpenses.map(lakh)],
@@ -636,6 +678,7 @@ const buildSamplePdf = () => {
   doc.table({
     widths: [190, 65, 65, 65, 65, 65],
     header: ["Rs. lakh", "Year 1", "Year 2", "Year 3", "Year 4", "Year 5"],
+    aligns: ["left", "right", "right", "right", "right", "right"],
     rows: [
       ["Opening cash", ...YEARS.map((y) => lakh(y.openingCash))],
       ["Operating cash after interest", ...YEARS.map((y) => lakh(y.operatingCashAfterInterest))],
@@ -652,6 +695,7 @@ const buildSamplePdf = () => {
   doc.table({
     widths: [190, 65, 65, 65, 65, 65],
     header: ["Rs. lakh", "Year 1", "Year 2", "Year 3", "Year 4", "Year 5"],
+    aligns: ["left", "right", "right", "right", "right", "right"],
     rows: [
       ["Machinery at WDV", ...YEARS.map((y) => lakh(y.closingWdv))],
       ["Receivables", ...YEARS.map((y) => lakh(y.receivables))],
@@ -701,21 +745,18 @@ const buildSamplePdf = () => {
 
   doc.heading("15. Document checklist");
   doc.table({
-    widths: [190, 100, 210],
-    header: ["Document", "Status", "Remarks"],
-    rows: PROJECT.documents.map((item) => [item.name, item.status, item.note]),
+    widths: [140, 130, 105, 125],
+    header: ["Document", "Purpose", "Status", "Remarks"],
+    rows: PROJECT.documents.map((item) => [item.name, item.purpose, item.status, item.note]),
     fontSize: 8.4,
   });
-  doc.paragraph(
-    "Only PAN, Aadhaar, address proof and bank statements are mandatory. The remaining documents are optional and improve the appraisal but do not block submission."
-  );
 
   doc.heading("16. Conclusion");
   doc.paragraph(
     `The proposal needs Rs. ${lakh(PROJECT.loan)} lakh of term finance against a total project cost of Rs. ${lakh(PROJECT.totalCost)} lakh, with the promoter bringing Rs. ${lakh(PROJECT.promoterContribution)} lakh. Year 1 rental income of Rs. ${lakh(rental[0])} lakh supports debt service of ${dscr[0].toFixed(2)}x, the lowest coverage in the five year period is ${Math.min(...dscr).toFixed(2)}x, and the loan is fully repaid within the tenure. On these assumptions the project is viable and the loan is repayable.`
   );
   doc.paragraph(
-    "Disclaimer: this is a sample prepared by DPR Preparation System to show the expected structure and depth of a bank proposal. The figures are illustrative, no personal identity details are included, and any real submission must use the applicant's own verified data."
+    "Declaration: the information and figures in this report are compiled from the quotations, records and enquiries placed on file and are true to the best of my knowledge. The applicant has no borrowings other than those disclosed above, and the machines offered as security are free from any prior charge."
   );
 
   return doc.finish();
@@ -777,7 +818,7 @@ const buildSampleDocx = () => {
   blocks.push(dParagraph(PROJECT.title, { size: 28, after: 60, align: "center" }));
   blocks.push(dParagraph(PROJECT.subtitle, { size: 20, color: "4A5568", after: 240, align: "center" }));
   blocks.push(
-    dParagraph("Sample document prepared by DPR Preparation System - illustrative figures, no personal identity details.", {
+    dParagraph("Term loan proposal for bank appraisal - Medchal, Telangana", {
       size: 18,
       color: "718096",
       after: 360,
@@ -923,14 +964,6 @@ const buildSampleDocx = () => {
       [280, 140, 420]
     )
   );
-  blocks.push(
-    dParagraph("Only PAN, Aadhaar, address proof and bank statements are mandatory; the rest are optional.", {
-      size: 18,
-      color: "4A5568",
-      after: 200,
-    })
-  );
-
   blocks.push(dHeading("12. Conclusion"));
   blocks.push(
     dParagraph(
@@ -939,7 +972,7 @@ const buildSampleDocx = () => {
   );
   blocks.push(
     dParagraph(
-      "Disclaimer: sample document for illustration. Figures are illustrative and any real submission must use the applicant's own verified data.",
+      "Declaration: the information and figures in this report are compiled from the quotations, records and enquiries placed on file and are true to the best of my knowledge.",
       { size: 18, color: "718096", after: 120 }
     )
   );
@@ -1036,7 +1069,7 @@ const buildSampleXlsx = () => {
     ["EMI (Rs.)", EMI],
     ["Total interest over tenure (Rs. lakh)", Number(YEARS.reduce((sum, y) => sum + y.interestPaid, 0).toFixed(2))],
     [],
-    ["Marchinery detail", "Quantity", "Unit cost (Rs. lakh)", "Total (Rs. lakh)"],
+    ["Machinery detail", "Quantity", "Unit cost (Rs. lakh)", "Total (Rs. lakh)"],
     ...PROJECT.machines.map((machine) => [machine.name, machine.qty, machine.unit, machine.total]),
   ];
 
