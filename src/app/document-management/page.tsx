@@ -9,7 +9,7 @@
    - Dashboard: Project selection and navigation
  * 
  * Per SRS Section 13 and Screen 14 Requirements:
-   - 12 mandatory document categories + optional categories
+   - Identity and bank records mandatory; every other category optional
    - File type validation (PDF, JPG, PNG)
    - File size limits per category
    - At least 80% of required documents must be uploaded before "Submit for Review" becomes available
@@ -172,7 +172,7 @@ export default function DocumentManagementPage() {
           <div className="bg-white rounded-lg p-6 shadow-sm mb-8">
             <h3 className="text-secondary font-medium mb-4">Compliance Status</h3>
             <p className="text-zinc-500 text-sm mb-4">
-              12 mandatory document categories required for MUDRA Tarun submission. Minimum 80% compliance required before submission.
+              {mandatoryCategoryCount} mandatory document categories required for MUDRA Tarun submission. Every other document is optional, and 80% compliance is needed before submission.
             </p>
             
             <div className="grid grid-cols-2 gap-3 mb-4">
