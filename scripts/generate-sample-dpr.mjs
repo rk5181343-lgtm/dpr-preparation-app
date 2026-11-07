@@ -289,10 +289,10 @@ class PdfDoc {
   }
 
   subheading(label) {
-    this.ensure(28);
-    this.y -= 4;
+    this.ensure(34);
+    this.y -= 12;
     drawText(this.ops, MARGIN, this.y, label, { size: 10, bold: true, color: C.secondary });
-    this.y -= 14;
+    this.y -= 15;
   }
 
   paragraph(value, { size = 9.6, gap = 7, color = C.secondary } = {}) {
