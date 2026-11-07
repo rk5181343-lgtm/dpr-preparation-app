@@ -23,6 +23,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { YEARS } from "@/lib/finance";
 
 export default function BreakEvenReportPage() {
   const [userType, setUserType] = useState<'ca' | 'applicant'>('ca');
@@ -54,7 +55,7 @@ export default function BreakEvenReportPage() {
   const dscr5yr = [2.67, 3.03, 3.41, 3.82, 4.27];
   
   // 5-year cash balance (from Cash Flow module)
-  const cashBalance5yr = [3.59, 6.99, 11.30, 16.62, 23.02];
+  const cashBalance5yr = YEARS.map((year) => year.closingCash);
   
   // Sensitivity scenario results (from PDF Table 11 analysis)
   const sensitivityScenarios = [
@@ -250,7 +251,7 @@ export default function BreakEvenReportPage() {
                 <span className="font-bold text-secondary">DSCR Trend:</span> Improves from 2.67x (Year 1) to 4.27x (Year 5). Year 1 at MUDRA minimum; subsequent years comfortably above 2.0x threshold.
               </li>
               <li>
-                <span className="font-bold text-secondary">Cash Balance Trend:</span> Grows from Rs. 3.59 lakh (Year 1) to Rs. 23.02 lakh (Year 5). Cumulative wealth creation through profitable operations and debt amortization.
+                <span className="font-bold text-secondary">Cash Balance Trend:</span> Grows from Rs. 3.59 lakh (Year 1) to Rs. 23.03 lakh (Year 5). Cumulative wealth creation through profitable operations and debt amortization.
               </li>
               <li>
                 <span className="font-bold text-secondary">Expense Trend:</span> Operating expenses grow from Rs. 5.37 lakh (Year 1) to Rs. 7.45 lakh (Year 5), reflecting 8% repairs escalation and 5% other expenses escalation annually.

@@ -21,6 +21,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { YEARS, lakh, calculateDscr } from "@/lib/finance";
 
 export default function CashFlowPage() {
   const [userType, setUserType] = useState<'ca' | 'applicant'>('ca');
@@ -33,87 +34,35 @@ export default function CashFlowPage() {
     }
   }, []);
 
-  // 5-year profitability data (from PDF verified calculations in Loan Repayment module)
-  const profitabilityData = [
-    { year: 1, netProfitAfterReserve: 4.07, depreciation: 1.95 },
-    { year: 2, netProfitAfterReserve: 5.50, depreciation: 1.66 },
-    { year: 3, netProfitAfterReserve: 6.99, depreciation: 1.41 },
-    { year: 4, netProfitAfterReserve: 8.56, depreciation: 1.20 },
-    { year: 5, netProfitAfterReserve: 10.22, depreciation: 1.02 }
-  ];
-
-  // Loan amortization data (from Loan Repayment module)
-  const loanData = [
-    { year: 1, principalRepaid: 1.55, interestPaid: 1.12, closingBalance: 8.45 },
-    { year: 2, principalRepaid: 1.75, interestPaid: 0.92, closingBalance: 6.70 },
-    { year: 3, principalRepaid: 1.97, interestPaid: 0.70, closingBalance: 4.73 },
-    { year: 4, principalRepaid: 2.22, interestPaid: 0.45, closingBalance: 2.50 },
-    { year: 5, principalRepaid: 2.50, interestPaid: 0.17, closingBalance: 0.00 }
-  ];
-
-  // Owner drawings data (from assumptions: Rs. 15,000/month initially, 5% annual increase)
-  const ownerDrawls = [
-    { year: 1, drawings: 1.80 },
-    { year: 2, drawings: 1.89 },
-    { year: 3, drawings: 1.98 },
-    { year: 4, drawings: 2.08 },
-    { year: 5, drawings: 2.19 }
-  ];
-
-  // Receivables data (from Working Capital: Annual rental income / 12)
-  const rentalIncome = [12.96, 14.36, 15.88, 17.50, 19.25]; // Rs. lakh per year
-  const receivablesDays = 30; // Default per PDF assumptions
-  const receivables = [
-    { year: 1, yearEnd: 1.08 },
-    { year: 2, yearEnd: 1.20 },
-    { year: 3, yearEnd: 1.32 },
-    { year: 4, yearEnd: 1.46 },
-    { year: 5, yearEnd: 1.60 }
-  ];
-
-  // Calculate increase in receivables
-  const increaseInReceivables = [
-    { year: 1, increase: 1.08 }, // Year 1: opening was 0, so increase = yearEnd - 0
-    { year: 2, increase: 0.12 }, // 1.20 - 1.08
-    { year: 3, increase: 0.12 }, // 1.32 - 1.20 (PDF shows 0.13, slight rounding)
-    { year: 4, increase: 0.14 }, // 1.46 - 1.32
-    { year: 5, increase: 0.14 }  // 1.60 - 1.46 (PDF shows 0.15, slight rounding)
-  ];
-
-  // Cash flow calculations
-  const operatingCashAfterInterest = [];
-  const closingCash = [];
-  
-  // Year 1 opening cash = Rs. 2.00 lakh (after asset purchase per PDF)
-  let openingCash = 2.00;
-  
-  for (let i = 0; i < 5; i++) {
-    const profit = profitabilityData[i].netProfitAfterReserve;
-    const depreciation = profitabilityData[i].depreciation;
-    const recvInc = increaseInReceivables[i].increase;
-    const principal = loanData[i].principalRepaid;
-    const drawings = ownerDrawls[i].drawings;
-    
-    // Operating Cash After Interest = Net Profit After Reserve + Depreciation - Increase in Receivables
-    const oci = profit + depreciation - recvInc;
-    operatingCashAfterInterest.push(oci);
-    
-    // Closing Cash = Opening Cash + Operating Cash After Interest - Principal Repayment - Owner Drawings
-    const closing = openingCash + oci - principal - drawings;
-    closingCash.push(Math.max(0, closing));
-    
-    // Next year's opening cash = this year's closing cash
-    openingCash = closing;
-  }
-
-  // DSCR data from loan repayment module
-  const dscrData = [
-    { year: 1, dscr: 2.67 },
-    { year: 2, dscr: 3.03 },
-    { year: 3, dscr: 3.41 },
-    { year: 4, dscr: 3.82 },
-    { year: 5, dscr: 4.27 }
-  ];
+  // All figures come from the shared five-year model so that this statement
+  // reconciles with the balance sheet to the paisa.
+  const profitabilityData = YEARS.map((year) => ({
+    year: year.year,
+    netProfitAfterReserve: year.netProfitAfterReserve,
+    depreciation: year.depreciation,
+  }));
+  const loanData = YEARS.map((year) => ({
+    year: year.year,
+    principalRepaid: year.principalRepaid,
+    interestPaid: year.interestPaid,
+    closingBalance: year.termLoanOutstanding,
+  }));
+  const ownerDrawls = YEARS.map((year) => ({ year: year.year, drawings: year.ownerDrawings }));
+  const increaseInReceivables = YEARS.map((year) => ({
+    year: year.year,
+    increase: year.increaseInReceivables,
+  }));
+  const operatingCashAfterInterest = YEARS.map((year) => year.operatingCashAfterInterest);
+  const closingCash = YEARS.map((year) => year.closingCash);
+  const dscrData = YEARS.map((year) => ({
+    year: year.year,
+    dscr: calculateDscr(
+      year.netProfitAfterReserve,
+      year.depreciation,
+      year.interestPaid,
+      year.principalRepaid
+    ),
+  }));
 
   const handleSubmit = () => {
     // Cash flow is always available; All screens are available, all screens
@@ -175,17 +124,17 @@ export default function CashFlowPage() {
                 <tr className="border-b border-zinc-200">
                   <td className="p-3 font-medium text-secondary">Net Profit After Reserve</td>
                   {profitabilityData.map((data) => (
-                    <td key={data.year} className="p-3">{data.netProfitAfterReserve.toLocaleString()}</td>
+                    <td key={data.year} className="p-3">{lakh(data.netProfitAfterReserve)}</td>
                   ))}</tr>
                 <tr className="border-b border-zinc-200">
                   <td className="p-3 font-medium text-secondary">Add Depreciation</td>
                   {profitabilityData.map((data) => (
-                    <td key={data.year} className="p-3">{data.depreciation.toLocaleString()}</td>
+                    <td key={data.year} className="p-3">{lakh(data.depreciation)}</td>
                   ))}</tr>
                 <tr className="border-b border-zinc-200">
                   <td className="p-3 font-medium text-secondary">Less Increase in Receivables</td>
                   {increaseInReceivables.map((data) => (
-                    <td key={data.year} className="p-3">{data.increase.toLocaleString()}</td>
+                    <td key={data.year} className="p-3">{lakh(data.increase)}</td>
                   ))}</tr>
                 <tr className="bg-primary/10 border-b border-zinc-200">
                   <td className="p-3 font-medium text-secondary">Operating Cash After Interest</td>
@@ -197,12 +146,12 @@ export default function CashFlowPage() {
                 <tr className="border-b border-zinc-200">
                   <td className="p-3 font-medium text-secondary">Less Principal Repayment</td>
                   {loanData.map((data) => (
-                    <td key={data.year} className="p-3">{data.principalRepaid.toLocaleString()}</td>
+                    <td key={data.year} className="p-3">{lakh(data.principalRepaid)}</td>
                   ))}</tr>
                 <tr className="bg-primary/10 border-b border-zinc-200">
                   <td className="p-3 font-medium text-secondary">Less Owner Drawings</td>
                   {ownerDrawls.map((data) => (
-                    <td key={data.year} className="p-3">{data.drawings.toLocaleString()}</td>
+                    <td key={data.year} className="p-3">{lakh(data.drawings)}</td>
                   ))}</tr>
                 <tr className="font-bold bg-primary/10 border-t border-zinc-200">
                   <td className="p-3 font-medium text-secondary">Closing Cash and Bank</td>

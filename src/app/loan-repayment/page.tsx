@@ -18,6 +18,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { buildLoanSchedule } from "@/lib/finance";
 
 export default function LoanRepaymentPage() {
   const [userType, setUserType] = useState<'ca' | 'applicant'>('ca');
@@ -47,48 +48,6 @@ export default function LoanRepaymentPage() {
     setEmi(calculateEMI(loanAmount, interestRate, tenureMonths));
   }, [loanAmount, interestRate, tenureMonths]);
 
-  // Calculate 5-year amortization schedule
-  const calculateAmortization = (): Array<{
-    year: number;
-    openingBalance: number;
-    principalRepaid: number;
-    interestPaid: number;
-    closingBalance: number;
-  }> => {
-    const monthlyRate = interestRate / 100 / 12;
-    let balance = loanAmount;
-    const schedule: Array<{
-      year: number;
-      openingBalance: number;
-      principalRepaid: number;
-      interestPaid: number;
-      closingBalance: number;
-    }> = [];
-    
-    for (let year = 1; year <= 5; year++) {
-      let yearlyPrincipal = 0;
-      let yearlyInterest = 0;
-      
-      for (let month = 1; month <= 12; month++) {
-        const interest = Math.round(balance * monthlyRate);
-        const principal = Math.round(emi - interest);
-        balance = Math.max(0, balance - principal);
-        yearlyPrincipal += principal;
-        yearlyInterest += interest;
-      }
-      
-      schedule.push({
-        year,
-        openingBalance: year === 1 ? loanAmount : schedule[year - 2]?.closingBalance || loanAmount,
-        principalRepaid: yearlyPrincipal,
-        interestPaid: yearlyInterest,
-        closingBalance: Math.round(balance)
-      });
-    }
-    
-    return schedule;
-  };
-
   // Calculate DSCR per year using PDF formula:
   // DSCR = (Net profit after reserve + Depreciation + Interest) / (Principal + Interest)
   const calculateDSCR = (netProfitAfterReserve: number, depreciation: number, interest: number, principal: number): number => {
@@ -113,8 +72,8 @@ export default function LoanRepaymentPage() {
     dscr: calculateDSCR(data.netProfitAfterReserve, data.depreciation, data.interest, data.principal)
   }));
 
-  // 5-year amortization schedule
-  const amortizationSchedule = calculateAmortization();
+  // 5-year amortization schedule (final instalment absorbs paise rounding)
+  const amortizationSchedule = buildLoanSchedule(loanAmount, interestRate, tenureMonths, 5);
 
   // Validate DSCR Year 1 ≥ 2.0 for MUDRA Tarun
   const year1DSCR = dscrData[0].dscr;
