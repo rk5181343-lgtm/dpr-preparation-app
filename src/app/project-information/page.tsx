@@ -1,90 +1,88 @@
 /*
- * Project Information - dynamic form engine.
- * Renders the questions configured for the selected business activity, with
- * per-section grouping, required-field validation and draft saving.
+ * What this DPR needs - eight financial items, no jargon.
+ * Each item can be typed in, evidenced by an upload, or filled with a clearly
+ * labelled app estimate. Personal and KYC details are never estimated.
  */
 
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getActivityConfig, type Question } from "@/lib/activity-config";
-import { calculateProgress, loadCurrentProject, upsertProject, type Project } from "@/lib/project-store";
+import { getEssentials } from "@/lib/essentials";
+import { loadCurrentProject, upsertProject, type Project } from "@/lib/project-store";
 
 const field = "w-full rounded border border-zinc-300 px-3 py-2 text-sm focus:border-primary focus:ring-2 focus:ring-primary/20";
+const money = (value: number) => value.toLocaleString("en-IN");
 
 export default function ProjectInformationPage() {
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [estimated, setEstimated] = useState<string[]>([]);
+  const [uploads, setUploads] = useState<Record<string, string>>({});
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState("");
-  const [missing, setMissing] = useState<string[]>([]);
 
   useEffect(() => {
     const current = loadCurrentProject();
     if (current) {
       setProject(current);
-      setAnswers(current.answers ?? {});
+      setValues(current.answers ?? {});
+      setEstimated(current.estimated ?? []);
+      setUploads(current.uploads ?? {});
     }
     setLoaded(true);
   }, []);
 
-  const config = useMemo(
-    () => (project ? getActivityConfig(project.activityId, project.activityName) : null),
-    [project]
-  );
-
-  const isVisible = (question: Question) =>
-    !question.showIf || answers[question.showIf.questionId] === question.showIf.equals;
-
-  const visibleQuestions = config ? config.questions.filter(isVisible) : [];
-  const required = visibleQuestions.filter((question) => question.required);
-  const answeredRequired = required.filter((question) => (answers[question.id] ?? "").trim() !== "").length;
-  const progress = config ? calculateProgress(answers, config) : 0;
-
-  const persist = (status: "draft" | "in_progress") => {
-    if (!project || !config) return false;
-    const unanswered = required.filter((question) => (answers[question.id] ?? "").trim() === "");
-    if (status === "in_progress" && unanswered.length > 0) {
-      setMissing(unanswered.map((question) => question.label));
-      setMessage("");
-      return false;
-    }
-    setMissing([]);
-    const next: Project = {
-      ...project,
-      answers,
-      progress: calculateProgress(answers, config),
-      status,
-    };
-    upsertProject(next);
-    setProject(next);
-    setMessage(status === "draft" ? "Draft saved." : "Saved.");
-    return true;
-  };
-
   if (!loaded) {
-    return <div className="min-h-screen bg-zinc-50 p-6 text-sm text-zinc-500">Loading project…</div>;
+    return <div className="min-h-screen bg-zinc-50 p-6 text-sm text-zinc-500">Opening your project…</div>;
   }
 
-  if (!project || !config) {
+  if (!project) {
     return (
       <div className="min-h-screen bg-zinc-50">
         <main className="p-6">
           <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-sm p-6">
-            <h2 className="text-secondary font-medium text-lg mb-2">No project selected</h2>
-            <p className="text-sm text-zinc-600 mb-4">
-              Create a project first: choose the industry and business activity, and the questions below will adapt to it.
-            </p>
+            <h2 className="text-secondary font-medium text-lg mb-2">No project open</h2>
+            <p className="text-sm text-zinc-600 mb-4">Start by choosing your industry and business.</p>
             <button onClick={() => router.push("/project-creation")} className="btn-primary">
-              Create new project
+              Choose industry
             </button>
           </div>
         </main>
       </div>
     );
   }
+
+  const items = getEssentials(project.activityId);
+  const groups = Array.from(new Set(items.map((item) => item.group)));
+  const resolved = items.filter((item) => (values[item.id] ?? "").trim() !== "" || uploads[item.id]).length;
+  const progress = Math.round((resolved / items.length) * 100);
+
+  const setValue = (id: string, next: string) => {
+    setValues((previous) => ({ ...previous, [id]: next }));
+    setEstimated((previous) => previous.filter((entry) => entry !== id));
+  };
+
+  const useEstimate = (id: string, estimate: number) => {
+    setValues((previous) => ({ ...previous, [id]: String(estimate) }));
+    setEstimated((previous) => (previous.includes(id) ? previous : [...previous, id]));
+  };
+
+  const save = (goNext: boolean) => {
+    const next: Project = {
+      ...project,
+      answers: values,
+      estimated,
+      uploads,
+      progress,
+      status: progress === 100 ? "completed" : "in_progress",
+    };
+    upsertProject(next);
+    setProject(next);
+    setMessage("Saved.");
+    if (goNext) router.push("/document-submission");
+  };
 
   return (
     <div className="min-h-screen bg-zinc-50">
@@ -94,121 +92,117 @@ export default function ProjectInformationPage() {
             <span className="text-white text-xs font-bold">DPR</span>
           </div>
           <div>
-            <h2 className="font-semibold text-secondary text-lg">Project Information</h2>
-            <p className="text-zinc-500 text-sm">
-              {project.industryName} · {project.activityName}
-            </p>
+            <h2 className="font-semibold text-secondary text-lg">{project.name}</h2>
+            <p className="text-zinc-500 text-sm">{project.activityName}</p>
           </div>
         </div>
         <button onClick={() => router.push("/dashboard")} className="text-primary text-sm font-medium underline">
-          Home
+          My projects
         </button>
       </header>
 
       <main className="p-6">
-        <div className="max-w-3xl mx-auto space-y-6">
+        <div className="max-w-3xl mx-auto space-y-5">
           <section className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-start justify-between gap-4 mb-3">
-              <div>
-                <h3 className="text-secondary font-medium text-lg">{project.name}</h3>
-                <p className="text-sm text-zinc-500">{config.summary}</p>
-              </div>
-              <button onClick={() => router.push("/project-creation")} className="text-primary text-sm underline whitespace-nowrap">
-                Change activity
-              </button>
+            <h3 className="text-secondary font-medium text-lg mb-1">What this DPR needs</h3>
+            <p className="text-sm text-zinc-600 mb-3">
+              Eight money figures are enough to start. For each one you can type the number, attach the paper, or tap{" "}
+              <span className="font-medium">Use app estimate</span> and let us fill a starting figure for you.
+            </p>
+            <div className="rounded-md bg-accent/10 border border-accent/40 px-4 py-3 text-sm text-[#8a5a00] mb-4">
+              App estimates cover money figures only. Names, PAN, Aadhaar, address and experience are never invented — you
+              enter those yourself in the document step.
             </div>
             <div className="flex items-center justify-between text-sm mb-1">
               <span className="text-zinc-600">
-                {answeredRequired} of {required.length} required answers
+                {resolved} of {items.length} ready
               </span>
               <span className="text-primary font-medium">{progress}% complete</span>
             </div>
             <div className="h-2 rounded-full bg-zinc-100 overflow-hidden">
               <div className="h-full bg-primary" style={{ width: `${progress}%` }} />
             </div>
-            <p className="text-xs text-zinc-500 mt-2">Revenue basis for this activity: {config.revenueBasis}</p>
           </section>
 
-          {missing.length > 0 && (
-            <div className="rounded-md bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
-              <p className="font-medium mb-1">Complete these required fields before continuing:</p>
-              <ul className="list-disc pl-5">
-                {missing.map((label) => (
-                  <li key={label}>{label}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {config.sections.map((section) => {
-            const questions = visibleQuestions.filter((question) => question.section === section);
-            if (questions.length === 0) return null;
-            return (
-              <section key={section} className="bg-white rounded-lg shadow-sm p-6">
-                <h4 className="text-secondary font-medium mb-4">{section}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {questions.map((question) => {
-                    const value = answers[question.id] ?? "";
-                    const update = (next: string) => setAnswers((previous) => ({ ...previous, [question.id]: next }));
-                    const wide = question.type === "textarea";
+          {groups.map((group) => (
+            <section key={group} className="bg-white rounded-lg shadow-sm p-6">
+              <h4 className="text-secondary font-medium mb-4">{group}</h4>
+              <div className="space-y-4">
+                {items
+                  .filter((item) => item.group === group)
+                  .map((item) => {
+                    const value = values[item.id] ?? "";
+                    const isEstimated = estimated.includes(item.id);
+                    const uploaded = uploads[item.id];
+                    const status = !value && !uploaded ? "Not set" : isEstimated ? "App estimate" : value ? "Your value" : "Document attached";
+                    const statusStyle =
+                      status === "Not set"
+                        ? "bg-zinc-100 text-zinc-600"
+                        : status === "App estimate"
+                          ? "bg-accent/15 text-[#8a5a00]"
+                          : "bg-primary/10 text-primary";
                     return (
-                      <div key={question.id} className={wide ? "md:col-span-2" : ""}>
-                        <label className="block text-sm font-medium text-secondary mb-1">
-                          {question.label}
-                          {question.required && <span className="text-red-600 ml-1">*</span>}
-                          {question.unit && <span className="text-zinc-400 font-normal ml-1">({question.unit})</span>}
-                        </label>
-                        {question.type === "textarea" ? (
-                          <textarea
-                            className={field}
-                            rows={3}
-                            value={value}
-                            placeholder={question.placeholder}
-                            onChange={(event) => update(event.target.value)}
-                          />
-                        ) : question.type === "select" ? (
-                          <select className={field} value={value} onChange={(event) => update(event.target.value)}>
-                            <option value="">Select…</option>
-                            {(question.options ?? []).map((option) => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
+                      <div key={item.id} className="rounded-md border border-zinc-200 p-4">
+                        <div className="flex items-start justify-between gap-3 mb-1">
+                          <p className="font-medium text-secondary text-sm">
+                            {item.label} <span className="text-zinc-400 font-normal">({item.unit})</span>
+                          </p>
+                          <span className={`px-2 py-0.5 rounded-full text-xs ${statusStyle}`}>{status}</span>
+                        </div>
+                        <p className="text-xs text-zinc-500 mb-2">{item.why}</p>
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <input
                             className={field}
-                            type={question.type === "number" ? "number" : question.type === "date" ? "date" : "text"}
+                            inputMode="decimal"
                             value={value}
-                            placeholder={question.placeholder}
-                            onChange={(event) => update(event.target.value)}
+                            placeholder={`Not set — app estimate ${money(item.estimate)}`}
+                            onChange={(event) => setValue(item.id, event.target.value)}
                           />
-                        )}
-                        {question.help && <p className="text-xs text-zinc-500 mt-1">{question.help}</p>}
+                          <button onClick={() => useEstimate(item.id, item.estimate)} className="btn-secondary whitespace-nowrap">
+                            Use app estimate
+                          </button>
+                        </div>
+                        <div className="mt-2">
+                          <label className="block text-xs text-zinc-500 mb-1">
+                            Have the {item.docLabel}? Attach it instead (optional)
+                          </label>
+                          <input
+                            type="file"
+                            className="w-full text-xs"
+                            onChange={(event) => {
+                              const file = event.target.files?.[0];
+                              if (!file) return;
+                              setUploads((previous) => ({ ...previous, [item.id]: file.name }));
+                            }}
+                          />
+                          {uploaded && <p className="text-xs text-primary mt-1">Attached: {uploaded}</p>}
+                        </div>
                       </div>
                     );
                   })}
-                </div>
-              </section>
-            );
-          })}
+              </div>
+            </section>
+          ))}
+
+          <section className="bg-white rounded-lg shadow-sm p-6">
+            <h4 className="text-secondary font-medium mb-2">Personal details — you fill these</h4>
+            <p className="text-sm text-zinc-600">
+              Promoter name, PAN, Aadhaar, address and past experience must come from you or your documents. The app will not
+              create or guess them.
+            </p>
+          </section>
 
           {message && <p className="text-sm text-primary">{message}</p>}
 
-          <div className="flex flex-wrap gap-3 pb-6">
-            <button onClick={() => persist("draft")} className="btn-secondary">
-              Save draft
-            </button>
-            <button
-              onClick={() => {
-                if (persist("in_progress")) router.push("/document-submission");
-              }}
-              className="btn-primary"
-            >
+          <div className="flex flex-wrap gap-3 pb-8">
+            <button onClick={() => save(true)} className="btn-primary">
               Save &amp; continue to documents
             </button>
+            <button onClick={() => save(false)} className="btn-secondary">
+              Save
+            </button>
             <button onClick={() => router.push("/dashboard")} className="btn-secondary">
-              Back to dashboard
+              My projects
             </button>
           </div>
         </div>

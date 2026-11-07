@@ -19,6 +19,8 @@ export type Project = {
   projectType: string;
   purpose: string;
   answers: Record<string, string>;
+  estimated?: string[];
+  uploads?: Record<string, string>;
   progress: number;
   status: ProjectStatus;
   createdAt: string;
